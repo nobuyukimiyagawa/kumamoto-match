@@ -6,6 +6,16 @@
 - チーム間のトレーニングマッチ募集・応募
 - チームから個人への助っ人募集・応募
 
+## 公開先
+
+https://nobuyukimiyagawa.github.io/kumamoto-match/
+
+配信は `gh-pages` ブランチ。**`npm run deploy` で書き出しと配信をまとめて行う。**
+
+GitHub Actions による自動配信の定義は `docs/github-pages-workflow.yml` に置いてある。
+現在の gh の認証に `workflow` スコープが無く push できないため、手動配信にしている。
+`gh auth refresh -s workflow` を一度実行すれば、`.github/workflows/` へ移して自動化できる。
+
 ## 動かす
 
 ```bash
