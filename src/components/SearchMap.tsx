@@ -36,6 +36,9 @@ type Props = {
 
 export default function SearchMap({ posts, activeId, onSelect }: Props) {
   const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  // AdvancedMarker は Google Cloud で発行した Map ID が要る。
+  // 適当な文字列だとピンが出ないので、環境変数から渡す。
+  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
 
   // キーが無くても画面が壊れないようにする
   if (!key) {
@@ -78,7 +81,7 @@ export default function SearchMap({ posts, activeId, onSelect }: Props) {
   return (
     <APIProvider apiKey={key}>
       <Map
-        mapId="pitchmate"
+        mapId={mapId}
         defaultCenter={MAP_DEFAULT.center}
         defaultZoom={MAP_DEFAULT.zoom}
         colorScheme="DARK"
