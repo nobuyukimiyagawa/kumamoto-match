@@ -10,61 +10,69 @@ export default function PostCard({ post, active }: { post: Post; active: boolean
 
   return (
     <article
-      className="corner-arc relative flex h-full w-[17.5rem] shrink-0 snap-start flex-col"
+      className={`corner-arc relative flex h-full w-[19.5rem] shrink-0 snap-start flex-col ${
+        active ? "panel-on" : "panel"
+      }`}
       style={{
-        background: active ? "var(--night-3)" : "var(--night-2)",
         border: `1px solid ${active ? "var(--flood)" : "var(--chalk-16)"}`,
-        boxShadow: active ? "0 -18px 40px -18px rgba(231,209,94,.55) inset" : "none",
-        transition: "border-color .25s, background .25s",
+        transition: "border-color .25s",
       }}
     >
-      {/* 種別は色ではなく標識で示す */}
+      {/* 掲示の見出し。種別は色ではなく標識で示す */}
       <div
         className="sign flex items-center justify-between px-3 py-1.5 text-[10px]"
         style={{ background: accent, color: "var(--night)" }}
       >
         <span>{helper ? "HELPER" : "TRAINING MATCH"}</span>
-        <span style={{ opacity: 0.75 }}>{LEVEL_LABEL[post.level]}</span>
+        <span style={{ opacity: 0.8 }}>{LEVEL_LABEL[post.level]}</span>
       </div>
 
-      <div className="flex flex-col gap-2.5 p-3.5">
-        {/* 日付と時刻。スコアボードの並び */}
-        <div className="flex items-end gap-2.5">
-          <p className="dsp leading-none" style={{ fontSize: "2.6rem", fontWeight: 700 }}>
+      <div className="flex flex-col gap-3 px-3.5 pb-3.5 pt-3">
+        {/* 数字を主役に。日と時刻の桁を揃える */}
+        <div className="flex items-end gap-3">
+          <p className="dsp" style={{ fontSize: "3rem", fontWeight: 700 }}>
             {String(d.getMonth() + 1).padStart(2, "0")}
-            <span style={{ color: "var(--chalk-sub)" }}>.</span>
+            <span style={{ color: "var(--chalk-38)" }}>.</span>
             {String(d.getDate()).padStart(2, "0")}
           </p>
-          <div className="pb-1">
+          <div className="pb-0.5">
             <p className="sign text-[10px]" style={{ color: "var(--flood)" }}>{WD[d.getDay()]}</p>
-            <p className="dsp text-[15px] leading-none" style={{ fontWeight: 600 }}>
+            <p className="dsp mt-1 text-[16px]" style={{ fontWeight: 600 }}>
               {post.startTime}–{post.endTime}
             </p>
           </div>
         </div>
 
-        <div className="h-px" style={{ background: "var(--chalk-16)" }} />
+        {/* 選択が移った瞬間だけ白線を引き直す */}
+        <div
+          key={active ? "on" : "off"}
+          className={active ? "chalk-in h-px" : "h-px"}
+          style={{ background: active ? "var(--flood)" : "var(--chalk-16)" }}
+        />
 
-        <p className="text-[13px] font-bold leading-tight">{post.team.name}</p>
+        {/* 役所の掲示に近い項目立て。項目名の幅を固定して罫線に揃える */}
+        <dl className="spec">
+          <dt>チーム</dt>
+          <dd className="font-bold">{post.team.name}</dd>
 
-        <p className="text-[11px] leading-snug" style={{ color: "var(--chalk-60)" }}>
-          {post.venue.name}
-          <span className="ml-1" style={{ color: "var(--chalk-sub)" }}>{post.venue.city}</span>
-        </p>
+          <dt>会場</dt>
+          <dd>
+            {post.venue.name}
+            <span className="ml-1" style={{ color: "var(--chalk-sub)" }}>{post.venue.city}</span>
+          </dd>
 
-        {/* 判断に使う標識だけを出す */}
-        <ul className="flex flex-wrap gap-1">
           {helper && (
-            <li className="sign px-1.5 py-0.5 text-[10px]"
-                style={{ border: "1px solid var(--cone)", color: "var(--cone)" }}>
-              {post.positions?.join("/")} あと{post.needed}
-            </li>
+            <>
+              <dt>募集</dt>
+              <dd style={{ color: "var(--cone)" }} className="font-bold">
+                {post.positions?.join("・")} あと{post.needed}名
+              </dd>
+            </>
           )}
-          <li className="sign px-1.5 py-0.5 text-[10px]"
-              style={{ border: "1px solid var(--chalk-16)", color: "var(--chalk-60)" }}>
-            {post.fee ? `¥${post.fee}` : "参加費なし"}
-          </li>
-        </ul>
+
+          <dt>参加費</dt>
+          <dd className="dsp text-[13px]">{post.fee ? `¥${post.fee.toLocaleString()}` : "なし"}</dd>
+        </dl>
 
         <p className="line-clamp-2 text-[11px] leading-relaxed" style={{ color: "var(--chalk-sub)" }}>
           {post.body}

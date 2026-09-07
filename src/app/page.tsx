@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import SearchMap from "@/components/SearchMap";
+import PitchLines from "@/components/PitchLines";
 import PostCard from "@/components/PostCard";
 import Filters, { type FilterState } from "@/components/Filters";
 import { POSTS } from "@/lib/mock";
@@ -62,13 +63,11 @@ export default function SearchPage() {
   }
 
   return (
-    <main className="flex h-dvh flex-col">
+    <main className="relative isolate flex h-dvh flex-col">
+      {/* 地の模様。必ず背面に置く */}
+      <PitchLines className="-z-10 opacity-70" />
       {/* ヘッダー。ハーフウェイラインを1本引く */}
-      <header className="rule-b relative flex items-center gap-3 px-4 py-3">
-        <svg className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden>
-          <line x1="50%" y1="0" x2="50%" y2="100%" stroke="var(--chalk-08)" />
-          <circle cx="50%" cy="50%" r="26" fill="none" stroke="var(--chalk-08)" />
-        </svg>
+      <header className="panel rule-b relative flex items-center gap-3 px-4 py-3">
         <p className="relative text-[15px] font-bold tracking-tight">{SITE.name}</p>
         <p className="sign relative hidden text-[10px] sm:block" style={{ color: "var(--chalk-sub)" }}>
           {SITE.area}

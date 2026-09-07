@@ -4,6 +4,7 @@ import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-m
 import { MAP_DEFAULT } from "@/config/site";
 import type { Post } from "@/types";
 import { useEffect } from "react";
+import PitchLines from "./PitchLines";
 
 /** 地図の表示範囲を、出ている募集に合わせる */
 function FitBounds({ posts }: { posts: Post[] }) {
@@ -40,12 +41,7 @@ export default function SearchMap({ posts, activeId, onSelect }: Props) {
   if (!key) {
     return (
       <div className="relative flex h-full w-full flex-col items-center justify-center gap-4 px-6">
-        {/* 地図の代わりに、ピッチの白線だけを引いておく */}
-        <svg className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden>
-          <rect x="6%" y="8%" width="88%" height="84%" fill="none" stroke="var(--chalk-08)" />
-          <line x1="50%" y1="8%" x2="50%" y2="92%" stroke="var(--chalk-08)" />
-          <circle cx="50%" cy="50%" r="52" fill="none" stroke="var(--chalk-08)" />
-        </svg>
+        <PitchLines />
         <p className="sign relative text-[10px]" style={{ color: "var(--flood)" }}>MAP OFFLINE</p>
         <p className="relative max-w-xs text-center text-[11px] leading-relaxed" style={{ color: "var(--chalk-sub)" }}>
           地図の鍵が未設定です。会場を一覧で表示しています。

@@ -39,7 +39,7 @@ export default function Filters({
 }: { value: FilterState; onChange: (v: FilterState) => void; count: number }) {
   const set = (p: Partial<FilterState>) => onChange({ ...value, ...p });
   return (
-    <div className="rule-b no-bar flex items-center gap-3 overflow-x-auto px-4 py-2.5">
+    <div className="panel rule-b no-bar relative flex items-center gap-3 overflow-x-auto px-4 py-2.5">
       <Seg
         items={[["all", "すべて"], ["training_match", "TM"], ["helper", "助っ人"]] as const}
         value={value.kind} onPick={(v) => set({ kind: v })}
