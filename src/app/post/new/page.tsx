@@ -7,8 +7,11 @@ import { KIND_LABEL, LEVEL_LABEL, type PostKind, type Level, type Position } fro
 import { SITE } from "@/config/site";
 
 const POSITIONS: Position[] = ["GK", "DF", "MF", "FW", "ANY"];
-const label = "block text-xs font-bold text-slate-700";
-const input = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none";
+const label = "sign block text-[10px]";
+const input =
+  "w-full border px-3 py-2 text-[13px] outline-none transition-colors " +
+  "border-[color:var(--chalk-16)] bg-[color:var(--night-2)] text-[color:var(--chalk)] " +
+  "focus:border-[color:var(--flood)]";
 
 export default function NewPostPage() {
   const [kind, setKind] = useState<PostKind>("training_match");
@@ -18,23 +21,23 @@ export default function NewPostPage() {
   const helper = kind === "helper";
 
   return (
-    <main className="mx-auto min-h-dvh max-w-2xl bg-slate-50 px-4 pb-16">
+    <main className="mx-auto min-h-dvh max-w-2xl px-4 pb-16">
       <header className="flex items-center gap-3 py-4">
-        <Link href="/" className="text-xs font-bold text-slate-500 hover:text-slate-900">← 探すに戻る</Link>
-        <p className="ml-auto text-sm font-bold text-slate-900">{SITE.name}</p>
+        <Link href="/" className="sign text-[10px]" style={{ color: "var(--chalk-sub)" }}>← 探すに戻る</Link>
+        <p className="ml-auto text-[13px] font-bold">{SITE.name}</p>
       </header>
 
-      <h1 className="mb-1 text-xl font-bold text-slate-900">募集する</h1>
-      <p className="mb-6 text-xs text-slate-500">{SITE.area}内の会場が対象です。</p>
+      <h1 className="mb-1 text-[22px] font-bold">募集する</h1>
+      <p className="mb-6 text-[11px]" style={{ color: "var(--chalk-sub)" }}>{SITE.area}内の会場が対象です。</p>
 
       {sent && (
-        <p className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <p className="mb-6 px-4 py-3 text-[12px]" style={{ border: "1px solid var(--flood)", color: "var(--flood)" }}>
           入力内容を確認しました。保存はデータベース接続後に有効になります。
         </p>
       )}
 
       <form
-        className="space-y-5 rounded-xl border border-slate-200 bg-white p-5"
+        className="space-y-5 p-5" style={{ border: "1px solid var(--chalk-16)", background: "var(--night-2)" }}
         onSubmit={(e) => { e.preventDefault(); setSent(true); }}
       >
         <fieldset>
@@ -43,12 +46,13 @@ export default function NewPostPage() {
             {(["training_match", "helper"] as PostKind[]).map((k) => (
               <button
                 key={k} type="button" onClick={() => setKind(k)}
-                className={`flex-1 rounded-lg border-2 px-3 py-3 text-sm font-bold transition ${
-                  kind === k ? "border-emerald-500 bg-emerald-50 text-emerald-800" : "border-slate-200 text-slate-600"
-                }`}
+                className="flex-1 px-3 py-3 text-[13px] font-bold transition-colors"
+                style={{ border: `1px solid ${kind === k ? "var(--flood)" : "var(--chalk-16)"}`,
+                         background: kind === k ? "var(--night-3)" : "transparent",
+                         color: kind === k ? "var(--flood)" : "var(--chalk-60)" }}
               >
                 {KIND_LABEL[k]}
-                <span className="mt-0.5 block text-[11px] font-medium text-slate-500">
+                <span className="mt-0.5 block text-[10px] font-normal" style={{ color: "var(--chalk-sub)" }}>
                   {k === "helper" ? "個人に来てもらう" : "チームと試合する"}
                 </span>
               </button>
@@ -79,7 +83,7 @@ export default function NewPostPage() {
           <select id="venue" className={`${input} mt-1`} required>
             {VENUES.map((v) => <option key={v.id} value={v.id}>{v.name}（{v.city}）</option>)}
           </select>
-          <p className="mt-1 text-[11px] text-slate-500">地図に出るのは会場だけです。個人の住所は表示しません。</p>
+          <p className="mt-1 text-[10px]" style={{ color: "var(--chalk-sub)" }}>地図に出るのは会場だけです。個人の住所は表示しません。</p>
         </div>
 
         <div>
@@ -92,7 +96,7 @@ export default function NewPostPage() {
         </div>
 
         {helper && (
-          <div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <div className="space-y-4 p-4" style={{ border: "1px solid var(--cone)", background: "var(--night-3)" }}>
             <fieldset>
               <legend className={label}>募集ポジション</legend>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -102,9 +106,10 @@ export default function NewPostPage() {
                     <button
                       key={p} type="button"
                       onClick={() => setPositions(on ? positions.filter((x) => x !== p) : [...positions, p])}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
-                        on ? "border-amber-600 bg-amber-600 text-white" : "border-amber-300 bg-white text-amber-800"
-                      }`}
+                      className="sign px-2.5 py-1.5 text-[10px] transition-colors"
+                      style={{ border: "1px solid var(--cone)",
+                               background: on ? "var(--cone)" : "transparent",
+                               color: on ? "var(--night)" : "var(--cone)" }}
                     >{p === "ANY" ? "どこでも" : p}</button>
                   );
                 })}
@@ -128,7 +133,7 @@ export default function NewPostPage() {
             placeholder="人数、形式、審判の分担など、相手が判断に必要なことを書いてください。" />
         </div>
 
-        <button type="submit" className="w-full rounded-full bg-emerald-600 py-3 text-sm font-bold text-white transition hover:bg-emerald-700">
+        <button type="submit" className="sign w-full py-3.5 text-[11px]" style={{ background: "var(--flood)", color: "var(--night)" }}>
           この内容で募集する
         </button>
       </form>

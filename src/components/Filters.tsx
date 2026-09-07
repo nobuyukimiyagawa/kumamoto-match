@@ -5,50 +5,56 @@ import type { PostKind, Level } from "@/types";
 export type FilterState = {
   kind: PostKind | "all";
   level: Level | "all";
-  within: 7 | 14 | 30 | 0; // 0 = すべて
+  within: 7 | 14 | 30 | 0;
 };
 
-const chip = (on: boolean) =>
-  `rounded-full border px-3 py-1.5 text-xs font-bold transition ${
-    on ? "border-slate-900 bg-slate-900 text-white" : "border-slate-300 bg-white text-slate-600 hover:border-slate-500"
-  }`;
+function Seg<T extends string | number>({
+  items, value, onPick,
+}: { items: readonly (readonly [T, string])[]; value: T; onPick: (v: T) => void }) {
+  return (
+    <div className="flex" style={{ border: "1px solid var(--chalk-16)" }}>
+      {items.map(([v, label], i) => {
+        const on = v === value;
+        return (
+          <button
+            key={String(v)}
+            onClick={() => onPick(v)}
+            className="sign whitespace-nowrap px-2.5 py-1.5 text-[10px] transition-colors"
+            style={{
+              background: on ? "var(--chalk)" : "transparent",
+              color: on ? "var(--night)" : "var(--chalk-60)",
+              borderLeft: i ? "1px solid var(--chalk-16)" : "none",
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function Filters({
   value, onChange, count,
 }: { value: FilterState; onChange: (v: FilterState) => void; count: number }) {
-  const set = (patch: Partial<FilterState>) => onChange({ ...value, ...patch });
-
+  const set = (p: Partial<FilterState>) => onChange({ ...value, ...p });
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-slate-200 bg-white px-4 py-3">
-      <div className="flex gap-1.5">
-        {([["all","すべて"],["training_match","トレーニングマッチ"],["helper","助っ人"]] as const).map(([k, label]) => (
-          <button key={k} className={chip(value.kind === k)} onClick={() => set({ kind: k as FilterState["kind"] })}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <span className="mx-1 h-4 w-px bg-slate-200" aria-hidden />
-
-      <div className="flex gap-1.5">
-        {([[7,"今週"],[14,"2週間"],[30,"1ヶ月"],[0,"すべて"]] as const).map(([d, label]) => (
-          <button key={d} className={chip(value.within === d)} onClick={() => set({ within: d as FilterState["within"] })}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <span className="mx-1 h-4 w-px bg-slate-200" aria-hidden />
-
-      <div className="flex gap-1.5">
-        {([["all","レベル不問"],["beginner","初心者歓迎"],["casual","エンジョイ"],["competitive","本格志向"]] as const).map(([l, label]) => (
-          <button key={l} className={chip(value.level === l)} onClick={() => set({ level: l as FilterState["level"] })}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <p className="ml-auto text-xs font-bold text-slate-500">{count} 件</p>
+    <div className="rule-b no-bar flex items-center gap-3 overflow-x-auto px-4 py-2.5">
+      <Seg
+        items={[["all", "すべて"], ["training_match", "TM"], ["helper", "助っ人"]] as const}
+        value={value.kind} onPick={(v) => set({ kind: v })}
+      />
+      <Seg
+        items={[[7, "今週"], [14, "2週"], [30, "1ヶ月"], [0, "全部"]] as const}
+        value={value.within} onPick={(v) => set({ within: v })}
+      />
+      <Seg
+        items={[["all", "レベル不問"], ["beginner", "初心者"], ["casual", "エンジョイ"], ["competitive", "本格"]] as const}
+        value={value.level} onPick={(v) => set({ level: v })}
+      />
+      <p className="dsp ml-auto shrink-0 text-[13px]" style={{ color: "var(--chalk-60)" }}>
+        {count}<span className="ml-1 text-[10px]">件</span>
+      </p>
     </div>
   );
 }

@@ -1,53 +1,75 @@
 import type { Post } from "@/types";
-import { KIND_LABEL, LEVEL_LABEL } from "@/types";
+import { LEVEL_LABEL } from "@/types";
 
-const WD = "日月火水木金土";
-const fmt = (d: string) => {
-  const t = new Date(d + "T00:00:00");
-  return `${t.getMonth() + 1}/${t.getDate()}(${WD[t.getDay()]})`;
-};
+const WD = ["日", "月", "火", "水", "木", "金", "土"];
 
 export default function PostCard({ post, active }: { post: Post; active: boolean }) {
   const helper = post.kind === "helper";
+  const d = new Date(post.date + "T00:00:00");
+  const accent = helper ? "var(--cone)" : "var(--turf)";
+
   return (
     <article
-      className={`flex h-full w-[19rem] shrink-0 snap-start flex-col gap-2 rounded-xl border-2 bg-white p-4 text-left transition ${
-        active ? "border-emerald-500 shadow-lg" : "border-transparent shadow"
-      }`}
+      className="corner-arc relative flex h-full w-[17.5rem] shrink-0 snap-start flex-col"
+      style={{
+        background: active ? "var(--night-3)" : "var(--night-2)",
+        border: `1px solid ${active ? "var(--flood)" : "var(--chalk-16)"}`,
+        boxShadow: active ? "0 -18px 40px -18px rgba(231,209,94,.55) inset" : "none",
+        transition: "border-color .25s, background .25s",
+      }}
     >
-      <div className="flex items-center gap-2">
-        <span
-          className={`rounded px-2 py-0.5 text-[11px] font-bold ${
-            helper ? "bg-amber-100 text-amber-800" : "bg-sky-100 text-sky-800"
-          }`}
-        >
-          {KIND_LABEL[post.kind]}
-        </span>
-        <span className="text-[11px] text-slate-500">{LEVEL_LABEL[post.level]}</span>
+      {/* 種別は色ではなく標識で示す */}
+      <div
+        className="sign flex items-center justify-between px-3 py-1.5 text-[10px]"
+        style={{ background: accent, color: "var(--night)" }}
+      >
+        <span>{helper ? "HELPER" : "TRAINING MATCH"}</span>
+        <span style={{ opacity: 0.75 }}>{LEVEL_LABEL[post.level]}</span>
       </div>
 
-      <p className="text-lg font-bold leading-tight text-slate-900">
-        {fmt(post.date)} <span className="text-sm font-medium text-slate-600">{post.startTime}〜{post.endTime}</span>
-      </p>
+      <div className="flex flex-col gap-2.5 p-3.5">
+        {/* 日付と時刻。スコアボードの並び */}
+        <div className="flex items-end gap-2.5">
+          <p className="dsp leading-none" style={{ fontSize: "2.6rem", fontWeight: 700 }}>
+            {String(d.getMonth() + 1).padStart(2, "0")}
+            <span style={{ color: "var(--chalk-sub)" }}>.</span>
+            {String(d.getDate()).padStart(2, "0")}
+          </p>
+          <div className="pb-1">
+            <p className="sign text-[10px]" style={{ color: "var(--flood)" }}>{WD[d.getDay()]}</p>
+            <p className="dsp text-[15px] leading-none" style={{ fontWeight: 600 }}>
+              {post.startTime}–{post.endTime}
+            </p>
+          </div>
+        </div>
 
-      <p className="text-sm font-bold text-slate-800">{post.team.name}</p>
+        <div className="h-px" style={{ background: "var(--chalk-16)" }} />
 
-      <p className="text-xs text-slate-600">
-        {post.venue.name}
-        <span className="ml-1 text-slate-400">/ {post.venue.city}</span>
-      </p>
+        <p className="text-[13px] font-bold leading-tight">{post.team.name}</p>
 
-      {helper && (
-        <p className="text-xs font-bold text-amber-700">
-          {post.positions?.join("・")} を {post.needed} 名
+        <p className="text-[11px] leading-snug" style={{ color: "var(--chalk-60)" }}>
+          {post.venue.name}
+          <span className="ml-1" style={{ color: "var(--chalk-sub)" }}>{post.venue.city}</span>
         </p>
-      )}
 
-      <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">{post.body}</p>
+        {/* 判断に使う標識だけを出す */}
+        <ul className="flex flex-wrap gap-1">
+          {helper && (
+            <li className="sign px-1.5 py-0.5 text-[10px]"
+                style={{ border: "1px solid var(--cone)", color: "var(--cone)" }}>
+              {post.positions?.join("/")} あと{post.needed}
+            </li>
+          )}
+          <li className="sign px-1.5 py-0.5 text-[10px]"
+              style={{ border: "1px solid var(--chalk-16)", color: "var(--chalk-60)" }}>
+            {post.fee ? `¥${post.fee}` : "参加費なし"}
+          </li>
+        </ul>
 
-      <p className="mt-auto text-xs text-slate-500">
-        参加費 {post.fee ? `${post.fee.toLocaleString()}円` : "なし"}
-      </p>
+        <p className="line-clamp-2 text-[11px] leading-relaxed" style={{ color: "var(--chalk-sub)" }}>
+          {post.body}
+        </p>
+      </div>
     </article>
   );
 }

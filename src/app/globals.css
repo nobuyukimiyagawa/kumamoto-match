@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
+/* ============================================================
+   公営グラウンドのナイター掲示板
+   夜の地面に、白線（チョーク）で情報を引く。
+   面を増やさず、線と余白で区切る。角丸は使わない。
+   ============================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --night:    #151a18;  /* 夜のグラウンド。地 */
+  --night-2:  #1c2321;  /* 一段持ち上げた面 */
+  --night-3:  #232b29;  /* 押された面 */
+  --chalk:    #f4f1e8;  /* 白線と文字 */
+  --chalk-60: rgba(244,241,232,.60);
+  --chalk-38: rgba(244,241,232,.38);  /* 線・装飾専用。文字には使わない */
+  --chalk-sub: rgba(244,241,232,.66); /* 補助テキスト。夜の地でAAを満たす */
+  --chalk-16: rgba(244,241,232,.16);
+  --chalk-08: rgba(244,241,232,.08);
+  --turf:     #3e9b67;  /* トレーニングマッチ。10pxの標識でもAAを満たす明度 */
+  --flood:    #e7d15e;  /* 選択中・注目 */
+  --cone:     #e86f2a;  /* 助っ人 */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+* { box-sizing: border-box; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html, body { background: var(--night); }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  color: var(--chalk);
+  font-family: var(--font-body), "Hiragino Sans", sans-serif;
+  font-feature-settings: "palt";
+  -webkit-font-smoothing: antialiased;
+  /* 夜のざらつき。均質な平面にしない */
+  background-image:
+    radial-gradient(120% 60% at 50% -10%, rgba(231,209,94,.055), transparent 62%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+}
+
+/* 数字・英字は必ず表示書体で。時刻と日付の桁を揃える */
+.dsp {
+  font-family: var(--font-display), "Hiragino Sans", sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .01em;
+}
+/* 案内板の小見出し */
+.sign {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+/* チョークの線。1本で区切る */
+.rule-b { border-bottom: 1px solid var(--chalk-16); }
+.rule-t { border-top: 1px solid var(--chalk-16); }
+
+/* コーナーの円弧。カードの左上に引く */
+.corner-arc::before {
+  content: "";
+  position: absolute; top: 0; left: 0;
+  width: 22px; height: 22px;
+  border-right: 1px solid var(--chalk-38);
+  border-bottom: 1px solid var(--chalk-38);
+  border-bottom-right-radius: 22px;
+  pointer-events: none;
+}
+
+/* 読み込み時に順に立ち上げる */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .5s cubic-bezier(.22,1,.36,1) both; }
+
+/* 横スクロールバーは隠す */
+.no-bar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-bar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; }
 }

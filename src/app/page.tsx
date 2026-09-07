@@ -62,13 +62,21 @@ export default function SearchPage() {
   }
 
   return (
-    <main className="flex h-dvh flex-col bg-slate-50">
-      <header className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
-        <p className="text-base font-bold tracking-tight text-slate-900">{SITE.name}</p>
-        <p className="hidden text-xs text-slate-500 sm:block">{SITE.tagline}</p>
+    <main className="flex h-dvh flex-col">
+      {/* ヘッダー。ハーフウェイラインを1本引く */}
+      <header className="rule-b relative flex items-center gap-3 px-4 py-3">
+        <svg className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden>
+          <line x1="50%" y1="0" x2="50%" y2="100%" stroke="var(--chalk-08)" />
+          <circle cx="50%" cy="50%" r="26" fill="none" stroke="var(--chalk-08)" />
+        </svg>
+        <p className="relative text-[15px] font-bold tracking-tight">{SITE.name}</p>
+        <p className="sign relative hidden text-[10px] sm:block" style={{ color: "var(--chalk-sub)" }}>
+          {SITE.area}
+        </p>
         <Link
           href="/post/new"
-          className="ml-auto rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
+          className="sign relative ml-auto px-3.5 py-2 text-[10px] transition-colors"
+          style={{ background: "var(--flood)", color: "var(--night)" }}
         >
           募集する
         </Link>
@@ -80,23 +88,24 @@ export default function SearchPage() {
         <SearchMap posts={posts} activeId={activeId} onSelect={selectFromMap} />
       </div>
 
-      <div className="border-t border-slate-200 bg-slate-100">
+      <div className="rule-t">
         {posts.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-slate-500">
-            条件に合う募集がありません。期間や種別を広げてみてください。
+          <p className="px-4 py-10 text-center text-[12px]" style={{ color: "var(--chalk-sub)" }}>
+            条件に合う募集がありません。期間や種別を広げてください。
           </p>
         ) : (
           <div
             ref={railRef}
             onScroll={onRailScroll}
-            className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 py-4"
+            className="no-bar flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 py-3.5"
           >
-            {posts.map((p) => (
+            {posts.map((p, i) => (
               <div
                 key={p.id}
                 ref={(el) => { cardRefs.current[p.id] = el; }}
                 onClick={() => setActiveId(p.id)}
-                className="cursor-pointer"
+                className="rise cursor-pointer"
+                style={{ animationDelay: `${Math.min(i, 6) * 55}ms` }}
               >
                 <PostCard post={p} active={activeId === p.id} />
               </div>
