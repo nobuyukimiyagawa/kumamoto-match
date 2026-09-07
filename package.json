@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy": "NEXT_PUBLIC_BASE_PATH=/kumamoto-match next build && bash scripts/deploy-pages.sh"
   },
   "dependencies": {
     "@vis.gl/react-google-maps": "^1.10.0",

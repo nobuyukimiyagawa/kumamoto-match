@@ -1,0 +1,58 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build (static export)
+        env:
+          # プロジェクトページ配信なのでリポジトリ名をベースパスにする
+          NEXT_PUBLIC_BASE_PATH: /kumamoto-match
+          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+        run: npm run build
+      - name: Jekyll を通さない
+        run: touch out/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+# --- 使い方 -------------------------------------------------------------
+# このファイルは .github/workflows/ に置くと自動配信になるが、
+# 現在の gh の認証には workflow スコープが無く push できない。
+# 有効化するには一度だけ次を実行してから、このファイルを
+# .github/workflows/pages.yml へ移して push する:
+#
+#   gh auth refresh -s workflow
+#
+# それまでは npm run deploy で out/ を gh-pages ブランチへ手動配信する。
