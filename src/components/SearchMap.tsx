@@ -1,32 +1,13 @@
 "use client";
 
-import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
+import { useEffect, useRef } from "react";
+import * as maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { MAP_DEFAULT } from "@/config/site";
 import type { Post } from "@/types";
-import { useEffect } from "react";
-import PitchLines from "./PitchLines";
 
-/** 地図の表示範囲を、出ている募集に合わせる */
-function FitBounds({ posts }: { posts: Post[] }) {
-  const map = useMap();
-  useEffect(() => {
-    if (!map || posts.length === 0) return;
-    const b = new google.maps.LatLngBounds();
-    posts.forEach((p) => b.extend({ lat: p.venue.lat, lng: p.venue.lng }));
-    map.fitBounds(b, 64);
-  }, [map, posts]);
-  return null;
-}
-
-/** 選ばれた募集の会場へ寄せる */
-function PanTo({ post }: { post: Post | null }) {
-  const map = useMap();
-  useEffect(() => {
-    if (!map || !post) return;
-    map.panTo({ lat: post.venue.lat, lng: post.venue.lng });
-  }, [map, post]);
-  return null;
-}
+/** OpenFreeMap の暗色スタイル。鍵も登録も要らず、費用もかからない。 */
+const STYLE = "https://tiles.openfreemap.org/styles/dark";
 
 type Props = {
   posts: Post[];
@@ -34,89 +15,81 @@ type Props = {
   onSelect: (id: string) => void;
 };
 
+/** 募集のピン。見た目はカードの種別バッジとそろえる */
+function pin(post: Post, active: boolean) {
+  const el = document.createElement("span");
+  el.className = "sign px-2 py-1 text-[10px]";
+  el.textContent = post.kind === "helper" ? "助っ人" : "TM";
+  Object.assign(el.style, {
+    display: "block",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    background: active ? "var(--flood)" : "var(--night-2)",
+    color: active ? "var(--night)"
+      : post.kind === "helper" ? "var(--cone)" : "var(--chalk)",
+    border: `1px solid ${active ? "var(--flood)"
+      : post.kind === "helper" ? "var(--cone)" : "var(--chalk-38)"}`,
+    boxShadow: active ? "0 0 22px rgba(231,209,94,.5)" : "none",
+    transform: active ? "scale(1.08)" : "none",
+    transition: "transform .2s, box-shadow .2s",
+  } as CSSStyleDeclaration);
+  return el;
+}
+
 export default function SearchMap({ posts, activeId, onSelect }: Props) {
-  const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  // AdvancedMarker は Google Cloud で発行した Map ID が要る。
-  // 適当な文字列だとピンが出ないので、環境変数から渡す。
-  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
+  const holder = useRef<HTMLDivElement>(null);
+  const map = useRef<maplibregl.Map | null>(null);
+  const marks = useRef<Map<string, maplibregl.Marker>>(new Map());
+  const ready = useRef(false);
 
-  // キーが無くても画面が壊れないようにする
-  if (!key) {
-    return (
-      <div className="relative flex h-full w-full flex-col items-center justify-center gap-4 px-6">
-        <PitchLines />
-        <p className="sign relative text-[10px]" style={{ color: "var(--flood)" }}>MAP OFFLINE</p>
-        <p className="relative max-w-xs text-center text-[11px] leading-relaxed" style={{ color: "var(--chalk-sub)" }}>
-          地図の鍵が未設定です。会場を一覧で表示しています。
-        </p>
-        <ul className="relative w-full max-w-sm">
-          {posts.map((p, i) => (
-            <li key={p.id}>
-              <button
-                onClick={() => onSelect(p.id)}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] transition-colors"
-                style={{
-                  borderTop: i ? "1px solid var(--chalk-08)" : "1px solid var(--chalk-16)",
-                  borderBottom: i === posts.length - 1 ? "1px solid var(--chalk-16)" : "none",
-                  background: activeId === p.id ? "var(--night-3)" : "transparent",
-                  color: activeId === p.id ? "var(--chalk)" : "var(--chalk-60)",
-                }}
-              >
-                <span className="sign text-[9px]"
-                      style={{ color: p.kind === "helper" ? "var(--cone)" : "var(--turf)" }}>
-                  {p.kind === "helper" ? "H" : "TM"}
-                </span>
-                {p.venue.name}
-                <span className="ml-auto" style={{ color: "var(--chalk-sub)" }}>{p.venue.city}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+  // 地図はいちど作ったら使い回す
+  useEffect(() => {
+    if (!holder.current || map.current) return;
+    const m = new maplibregl.Map({
+      container: holder.current,
+      style: STYLE,
+      center: [MAP_DEFAULT.center.lng, MAP_DEFAULT.center.lat],
+      zoom: MAP_DEFAULT.zoom,
+      attributionControl: { compact: true },
+    });
+    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+    m.on("load", () => { ready.current = true; });
+    map.current = m;
+    return () => { m.remove(); map.current = null; ready.current = false; };
+  }, []);
 
-  const active = posts.find((p) => p.id === activeId) ?? null;
+  // 募集が変わったらピンを置き直し、表示範囲を合わせる
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
 
-  return (
-    <APIProvider apiKey={key}>
-      <Map
-        mapId={mapId}
-        defaultCenter={MAP_DEFAULT.center}
-        defaultZoom={MAP_DEFAULT.zoom}
-        colorScheme="DARK"
-        gestureHandling="greedy"
-        disableDefaultUI
-        zoomControl
-        className="h-full w-full"
-      >
-        <FitBounds posts={posts} />
-        <PanTo post={active} />
-        {posts.map((p) => (
-          <AdvancedMarker
-            key={p.id}
-            position={{ lat: p.venue.lat, lng: p.venue.lng }}
-            onClick={() => onSelect(p.id)}
-            zIndex={activeId === p.id ? 10 : 1}
-          >
-            <span
-              className="sign px-2 py-1 text-[10px]"
-              style={{
-                background: activeId === p.id ? "var(--flood)" : "var(--night-2)",
-                color: activeId === p.id ? "var(--night)"
-                  : p.kind === "helper" ? "var(--cone)" : "var(--chalk)",
-                border: `1px solid ${activeId === p.id ? "var(--flood)"
-                  : p.kind === "helper" ? "var(--cone)" : "var(--chalk-38)"}`,
-                boxShadow: activeId === p.id ? "0 0 22px rgba(231,209,94,.5)" : "none",
-                transform: activeId === p.id ? "scale(1.08)" : "none",
-                display: "block",
-              }}
-            >
-              {p.kind === "helper" ? "助っ人" : "TM"}
-            </span>
-          </AdvancedMarker>
-        ))}
-      </Map>
-    </APIProvider>
-  );
+    marks.current.forEach((mk) => mk.remove());
+    marks.current.clear();
+
+    posts.forEach((p) => {
+      const mk = new maplibregl.Marker({ element: pin(p, p.id === activeId) })
+        .setLngLat([p.venue.lng, p.venue.lat])
+        .addTo(m);
+      mk.getElement().addEventListener("click", (e: MouseEvent) => {
+        e.stopPropagation();
+        onSelect(p.id);
+      });
+      marks.current.set(p.id, mk);
+    });
+
+    if (posts.length === 0) return;
+    const b = new maplibregl.LngLatBounds();
+    posts.forEach((p) => b.extend([p.venue.lng, p.venue.lat]));
+    m.fitBounds(b, { padding: 72, maxZoom: 13, duration: 600 });
+  }, [posts, activeId, onSelect]);
+
+  // 選ばれた募集の会場へ寄せる
+  useEffect(() => {
+    const m = map.current;
+    const p = posts.find((x) => x.id === activeId);
+    if (!m || !p) return;
+    m.easeTo({ center: [p.venue.lng, p.venue.lat], duration: 600 });
+  }, [activeId, posts]);
+
+  return <div ref={holder} className="h-full w-full" />;
 }
