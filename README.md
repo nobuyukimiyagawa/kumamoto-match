@@ -31,7 +31,7 @@ npm run dev                        # http://localhost:3000
 | | |
 |---|---|
 | 画面 | Next.js 16 / React 19 / TypeScript / Tailwind |
-| 地図 | Google Maps（`@vis.gl/react-google-maps`） |
+| 地図 | MapLibre GL + OpenFreeMap（鍵不要・無料） |
 | データ | いまは `src/lib/mock.ts` の仮データ。次段階で Supabase |
 
 ```
@@ -42,6 +42,7 @@ src/components/      SearchMap / PostCard / Filters
 src/app/page.tsx     探す（地図＋カード連動）
 src/app/post/new/    募集する
 supabase/schema.sql  データベース定義
+scripts/copy-maplibre-worker.mjs  MapLibre の Worker を public/maplibre/ へ複製（dev/build 前に自動実行）
 ```
 
 ## デザインの決めごと
@@ -112,7 +113,6 @@ BIZ UDPGothic（和文。公営施設の掲示に近い実用感）。
 
 ## 用意が必要なもの
 
-- Google Maps JavaScript API のキー（請求先の設定が要る）
 - Supabase のプロジェクト
 
 ## 制約
@@ -120,3 +120,10 @@ BIZ UDPGothic（和文。公営施設の掲示に近い実用感）。
 熊本県内限定。`src/config/site.ts` の `KUMAMOTO_BOUNDS` と
 `venues` テーブルの制約の2か所で県外の座標を弾いている。
 対象範囲を広げるときはこの2か所を直す。
+
+## 地図が真っ黒になったら
+
+MapLibre の Worker が起動していない。Turbopack は `import.meta.url` を `file://` にするため、
+MapLibre 任せだと Worker の URL が空になる。対策として `scripts/copy-maplibre-worker.mjs` が
+Worker と shared を `public/maplibre/` へ複製し、`SearchMap.tsx` の `setWorkerUrl` で場所を明示している。
+`maplibre-gl` を更新したら `npm run build` で複製も更新される（`next build` 直叩きは不可）。
