@@ -9,6 +9,15 @@ import type { Post } from "@/types";
 /** OpenFreeMap の暗色スタイル。鍵も登録も要らず、費用もかからない。 */
 const STYLE = "https://tiles.openfreemap.org/styles/dark";
 
+/**
+ * Worker の場所を明示する。
+ * Turbopack は import.meta.url を file:// にするため、MapLibre 任せだと Worker の URL が
+ * 空になり、タイルが永遠に読み込み中のまま地図が真っ黒になる。
+ * 実体は scripts/copy-maplibre-worker.mjs が public/maplibre/ へ複製する。
+ */
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+maplibregl.setWorkerUrl(`${BASE}/maplibre/maplibre-gl-worker.mjs`);
+
 type Props = {
   posts: Post[];
   activeId: string | null;
