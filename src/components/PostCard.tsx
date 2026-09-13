@@ -1,83 +1,92 @@
+"use client";
+
+import { useState } from "react";
 import type { Post } from "@/types";
-import { LEVEL_LABEL } from "@/types";
+import { LEVEL_LABEL, KIND_LABEL } from "@/types";
+import { fmtKm } from "@/lib/geo";
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 
-export default function PostCard({ post, active }: { post: Post; active: boolean }) {
+/** 日付を「9月14日（月）」の形にする */
+export function fmtDate(iso: string) {
+  const d = new Date(iso + "T00:00:00");
+  return `${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+}
+
+export default function PostCard({
+  post, active, onSelect, distanceKm,
+}: { post: Post; active: boolean; onSelect: () => void; distanceKm?: number | null }) {
   const helper = post.kind === "helper";
-  const d = new Date(post.date + "T00:00:00");
-  const accent = helper ? "var(--cone)" : "var(--turf)";
+  const [open, setOpen] = useState(false);
 
   return (
     <article
-      className={`corner-arc relative flex h-full w-[19.5rem] shrink-0 snap-start flex-col ${
-        active ? "panel-on" : "panel"
-      }`}
-      style={{
-        border: `1px solid ${active ? "var(--flood)" : "var(--chalk-16)"}`,
-        transition: "border-color .25s",
-      }}
+      className={`card p-4 transition-shadow ${active ? "card-active" : ""}`}
+      onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
+      aria-pressed={active}
     >
-      {/* 掲示の見出し。種別は色ではなく標識で示す */}
-      <div
-        className="sign flex items-center justify-between px-3 py-1.5 text-[10px]"
-        style={{ background: accent, color: "var(--night)" }}
-      >
-        <span>{helper ? "HELPER" : "TRAINING MATCH"}</span>
-        <span style={{ opacity: 0.8 }}>{LEVEL_LABEL[post.level]}</span>
+      {/* 1行目: 種別とレベル。色だけに頼らず文字で示す */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`badge ${helper ? "badge-helper" : "badge-match"}`}>{KIND_LABEL[post.kind]}</span>
+        <span className="badge badge-gray">{LEVEL_LABEL[post.level]}</span>
+        {active && (
+          <span className="ml-auto text-[12.5px] font-bold" style={{ color: "var(--primary)" }}>
+            地図に表示中
+          </span>
+        )}
       </div>
 
-      <div className="flex flex-col gap-3 px-3.5 pb-3.5 pt-3">
-        {/* 数字を主役に。日と時刻の桁を揃える */}
-        <div className="flex items-end gap-3">
-          <p className="dsp" style={{ fontSize: "3rem", fontWeight: 700 }}>
-            {String(d.getMonth() + 1).padStart(2, "0")}
-            <span style={{ color: "var(--chalk-38)" }}>.</span>
-            {String(d.getDate()).padStart(2, "0")}
+      {/* 2行目: いつ。いちばん最初に知りたい情報を最も大きく */}
+      <p className="num mt-2.5 text-[18px] font-bold leading-tight">
+        {fmtDate(post.date)}
+        <span className="ml-2">{post.startTime}〜{post.endTime}</span>
+      </p>
+
+      {/* 3行目: 誰が、どこで */}
+      <p className="mt-1.5 text-[16px] font-bold">{post.team.name}</p>
+      <p className="mt-0.5 text-[14px]" style={{ color: "var(--text-sub)" }}>
+        <span aria-hidden>📍 </span>{post.venue.name}
+        <span className="ml-1">（{post.venue.city}）</span>
+        {distanceKm != null && (
+          <span className="num ml-2 inline-block whitespace-nowrap font-bold" style={{ color: "var(--primary)" }}>
+            現在地から{fmtKm(distanceKm)}
+          </span>
+        )}
+      </p>
+
+      {/* 4行目: 条件 */}
+      <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[14px]">
+        {helper && (
+          <p className="font-bold" style={{ color: "var(--helper)" }}>
+            {post.positions?.map((p) => (p === "ANY" ? "ポジション不問" : p)).join("・")} あと{post.needed}名
           </p>
-          <div className="pb-0.5">
-            <p className="sign text-[10px]" style={{ color: "var(--flood)" }}>{WD[d.getDay()]}</p>
-            <p className="dsp mt-1 text-[16px]" style={{ fontWeight: 600 }}>
-              {post.startTime}–{post.endTime}
-            </p>
-          </div>
-        </div>
-
-        {/* 選択が移った瞬間だけ白線を引き直す */}
-        <div
-          key={active ? "on" : "off"}
-          className={active ? "chalk-in h-px" : "h-px"}
-          style={{ background: active ? "var(--flood)" : "var(--chalk-16)" }}
-        />
-
-        {/* 役所の掲示に近い項目立て。項目名の幅を固定して罫線に揃える */}
-        <dl className="spec">
-          <dt>チーム</dt>
-          <dd className="font-bold">{post.team.name}</dd>
-
-          <dt>会場</dt>
-          <dd>
-            {post.venue.name}
-            <span className="ml-1" style={{ color: "var(--chalk-sub)" }}>{post.venue.city}</span>
-          </dd>
-
-          {helper && (
-            <>
-              <dt>募集</dt>
-              <dd style={{ color: "var(--cone)" }} className="font-bold">
-                {post.positions?.join("・")} あと{post.needed}名
-              </dd>
-            </>
-          )}
-
-          <dt>参加費</dt>
-          <dd className="dsp text-[13px]">{post.fee ? `¥${post.fee.toLocaleString()}` : "なし"}</dd>
-        </dl>
-
-        <p className="line-clamp-2 text-[11px] leading-relaxed" style={{ color: "var(--chalk-sub)" }}>
-          {post.body}
+        )}
+        <p>
+          <span style={{ color: "var(--text-sub)" }}>参加費 </span>
+          <span className="num font-bold">{post.fee ? `${post.fee.toLocaleString()}円` : "無料"}</span>
         </p>
       </div>
+
+      {/* 本文。長いときは畳んで、ボタンで開く */}
+      <p
+        className={`mt-2.5 text-[14px] leading-relaxed ${open ? "" : "line-clamp-2"}`}
+        style={{ color: "var(--text-sub)" }}
+      >
+        {post.body}
+      </p>
+      {post.body.length > 40 && (
+        <button
+          type="button"
+          className="mt-1 text-[13.5px] font-bold underline-offset-2 hover:underline"
+          style={{ color: "var(--primary)" }}
+          onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        >
+          {open ? "閉じる" : "続きを読む"}
+        </button>
+      )}
     </article>
   );
 }

@@ -1,21 +1,24 @@
 "use client";
 
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import SearchMap from "@/components/SearchMap";
-import PitchLines from "@/components/PitchLines";
 import PostCard from "@/components/PostCard";
 import Filters, { type FilterState } from "@/components/Filters";
 import { POSTS } from "@/lib/mock";
 import { SITE } from "@/config/site";
+import { distanceKm } from "@/lib/geo";
+
+export type LatLng = { lat: number; lng: number };
 
 export default function SearchPage() {
-  const [filter, setFilter] = useState<FilterState>({ kind: "all", level: "all", within: 7 });
+  const [filter, setFilter] = useState<FilterState>({ kind: "all", level: "all", within: 30, radiusKm: 0 });
   const [activeId, setActiveId] = useState<string | null>(null);
-  const railRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  // カード送りでピンを追う処理を、ピン押下の自動スクロール中は止める
-  const syncing = useRef(false);
+  // 現在地。距離で絞るときと、地図の現在地ボタンを押したときだけ入る
+  const [origin, setOrigin] = useState<LatLng | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState<string | null>(null);
 
   const posts = useMemo(() => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -27,90 +30,134 @@ export default function SearchPage() {
         const diff = (new Date(p.date + "T00:00:00").getTime() - today.getTime()) / 86400000;
         if (diff < 0 || diff > filter.within) return false;
       }
+      if (filter.radiusKm && origin) {
+        if (distanceKm(origin, p.venue) > filter.radiusKm) return false;
+      }
       return true;
     }).sort((a, b) => a.date.localeCompare(b.date));
-  }, [filter]);
+  }, [filter, origin]);
 
-  // 絞り込みが変わったら先頭を選び直す
-  useEffect(() => {
-    setActiveId(posts[0]?.id ?? null);
-  }, [posts]);
+  // 距離の絞り込みを選んだら、その場で現在地を取りに行く
+  const locate = useCallback(() => {
+    if (!("geolocation" in navigator)) {
+      setLocError("この端末では位置情報が使えません。");
+      return;
+    }
+    setLocating(true);
+    setLocError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setOrigin({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      (err) => {
+        setLocating(false);
+        setFilter((f) => ({ ...f, radiusKm: 0 }));
+        setLocError(
+          err.code === err.PERMISSION_DENIED
+            ? "位置情報の利用が許可されていません。ブラウザの設定で許可してから、もう一度お試しください。"
+            : "現在地を取得できませんでした。電波の良い場所でもう一度お試しください。",
+        );
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 },
+    );
+  }, []);
 
-  // ピンを押したらカードをそこへ送る
-  function selectFromMap(id: string) {
+  // 絞り込みが変わったら選択を外す（勝手に先頭へ飛ばない）
+  const changeFilter = useCallback((v: FilterState) => {
+    setFilter(v);
+    setActiveId(null);
+    if (v.radiusKm && !origin) locate();
+    if (!v.radiusKm) setLocError(null);
+  }, [origin, locate]);
+
+  // 地図の現在地ボタンで取れた位置も、距離の基準に使う
+  const onLocate = useCallback((p: LatLng) => { setOrigin(p); setLocError(null); }, []);
+
+  // ピンを押したら、そのカードまでリストを送る
+  const selectFromMap = useCallback((id: string) => {
     setActiveId(id);
-    const el = cardRefs.current[id];
-    if (el && railRef.current) {
-      syncing.current = true;
-      railRef.current.scrollTo({ left: el.offsetLeft - 16, behavior: "smooth" });
-      setTimeout(() => { syncing.current = false; }, 500);
-    }
-  }
-
-  // カードを送ったら、中央にあるものをピンとして強調する
-  function onRailScroll() {
-    if (syncing.current || !railRef.current) return;
-    const rail = railRef.current;
-    const center = rail.scrollLeft + rail.clientWidth / 2;
-    let best: string | null = null; let bestD = Infinity;
-    for (const p of posts) {
-      const el = cardRefs.current[p.id];
-      if (!el) continue;
-      const d = Math.abs(el.offsetLeft + el.offsetWidth / 2 - center);
-      if (d < bestD) { bestD = d; best = p.id; }
-    }
-    if (best && best !== activeId) setActiveId(best);
-  }
+    cardRefs.current[id]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, []);
 
   return (
-    <main className="relative isolate flex h-dvh flex-col">
-      {/* 地の模様。必ず背面に置く */}
-      <PitchLines className="-z-10 opacity-70" />
-      {/* ヘッダー。ハーフウェイラインを1本引く */}
-      <header className="panel rule-b relative flex items-center gap-3 px-4 py-3">
-        <p className="relative text-[15px] font-bold tracking-tight">{SITE.name}</p>
-        <p className="sign relative hidden text-[10px] sm:block" style={{ color: "var(--chalk-sub)" }}>
-          {SITE.area}
-        </p>
-        <Link
-          href="/post/new"
-          className="sign relative ml-auto px-3.5 py-2 text-[10px] transition-colors"
-          style={{ background: "var(--flood)", color: "var(--night)" }}
-        >
-          募集する
+    <main className="flex h-dvh flex-col">
+      {/* ヘッダー。サービス名と、いちばん大事な行動だけ */}
+      <header
+        className="flex items-center gap-3 px-4 py-2.5"
+        style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}
+      >
+        <div className="min-w-0">
+          <p className="text-[17px] font-bold leading-tight">{SITE.name}</p>
+          <p className="truncate text-[12.5px]" style={{ color: "var(--text-sub)" }}>
+            {SITE.area}のトレーニングマッチと助っ人を探す
+          </p>
+        </div>
+        <Link href="/post/new" className="btn btn-primary ml-auto shrink-0">
+          ＋ 募集する
         </Link>
       </header>
 
-      <Filters value={filter} onChange={setFilter} count={posts.length} />
+      {/* スマホは 上=地図 / 下=リスト。PC は 左=リスト / 右=地図 */}
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        {/* 地図 */}
+        <section
+          className="relative h-[36vh] shrink-0 md:order-2 md:h-auto md:flex-1"
+          style={{ borderBottom: "1px solid var(--line)" }}
+          aria-label="地図"
+        >
+          <SearchMap
+            posts={posts} activeId={activeId} onSelect={selectFromMap}
+            origin={origin} radiusKm={filter.radiusKm} onLocate={onLocate}
+          />
+        </section>
 
-      <div className="relative min-h-0 flex-1">
-        <SearchMap posts={posts} activeId={activeId} onSelect={selectFromMap} />
-      </div>
-
-      <div className="rule-t">
-        {posts.length === 0 ? (
-          <p className="px-4 py-10 text-center text-[12px]" style={{ color: "var(--chalk-sub)" }}>
-            条件に合う募集がありません。期間や種別を広げてください。
-          </p>
-        ) : (
-          <div
-            ref={railRef}
-            onScroll={onRailScroll}
-            className="no-bar flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 py-3.5"
-          >
-            {posts.map((p, i) => (
-              <div
-                key={p.id}
-                ref={(el) => { cardRefs.current[p.id] = el; }}
-                onClick={() => setActiveId(p.id)}
-                className="rise cursor-pointer"
-                style={{ animationDelay: `${Math.min(i, 6) * 55}ms` }}
-              >
-                <PostCard post={p} active={activeId === p.id} />
-              </div>
-            ))}
+        {/* 絞り込み + リスト */}
+        <section
+          className="flex min-h-0 flex-1 flex-col md:order-1 md:w-[30rem] md:flex-none"
+          style={{ background: "var(--bg)", borderRight: "1px solid var(--line)" }}
+          aria-label="募集一覧"
+        >
+          <div className="px-4 py-2.5 md:pb-3 md:pt-3" style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}>
+            <Filters value={filter} onChange={changeFilter} locating={locating} locError={locError} />
           </div>
-        )}
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-3 md:pb-6">
+            <p className="mb-2 text-[13.5px] font-bold" style={{ color: "var(--text-sub)" }}>
+              {posts.length}件の募集
+              <span className="ml-2 font-normal">
+                日付の近い順{filter.radiusKm && origin ? `・現在地から${filter.radiusKm}km以内` : ""}
+              </span>
+            </p>
+
+            {posts.length === 0 ? (
+              <div className="card p-6 text-center">
+                <p className="text-[15px] font-bold">条件に合う募集がありません</p>
+                <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
+                  期間や種別を広げてみてください。
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-ghost mt-4"
+                  onClick={() => changeFilter({ kind: "all", level: "all", within: 0, radiusKm: 0 })}
+                >
+                  絞り込みをすべて外す
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {posts.map((p) => (
+                  <div key={p.id} ref={(el) => { cardRefs.current[p.id] = el; }}>
+                    <PostCard
+                      post={p} active={activeId === p.id} onSelect={() => setActiveId(p.id)}
+                      distanceKm={origin ? distanceKm(origin, p.venue) : null}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </main>
   );

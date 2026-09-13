@@ -2,59 +2,94 @@
 
 import type { PostKind, Level } from "@/types";
 
+export type RadiusKm = 0 | 10 | 20 | 30 | 50;
+
 export type FilterState = {
   kind: PostKind | "all";
   level: Level | "all";
   within: 7 | 14 | 30 | 0;
+  /** 現在地からの距離。0 は指定なし */
+  radiusKm: RadiusKm;
 };
 
-function Seg<T extends string | number>({
-  items, value, onPick,
-}: { items: readonly (readonly [T, string])[]; value: T; onPick: (v: T) => void }) {
+/** 見出し付きのチップ列。スマホでは群を1行に並べて横スクロール、PCでは段組み */
+function Row<T extends string | number>({
+  title, items, value, onPick, busy,
+}: {
+  title: string;
+  items: readonly (readonly [T, string])[];
+  value: T;
+  onPick: (v: T) => void;
+  busy?: boolean;
+}) {
   return (
-    <div className="flex" style={{ border: "1px solid var(--chalk-16)" }}>
-      {items.map(([v, label], i) => {
-        const on = v === value;
-        return (
+    <div className="flex shrink-0 items-center gap-2 md:items-start">
+      <span className="shrink-0 text-[13px] font-bold md:w-[4.6rem] md:pt-2.5" style={{ color: "var(--text-sub)" }}>
+        {title}
+      </span>
+      <div className="flex gap-2 py-0.5 md:flex-wrap" role="group" aria-label={title}>
+        {items.map(([v, label]) => (
           <button
             key={String(v)}
+            type="button"
+            className="chip"
+            aria-pressed={v === value}
+            disabled={busy}
             onClick={() => onPick(v)}
-            className="sign whitespace-nowrap px-2.5 py-1.5 text-[10px] transition-colors"
-            style={{
-              background: on ? "var(--chalk)" : "transparent",
-              color: on ? "var(--night)" : "var(--chalk-60)",
-              borderLeft: i ? "1px solid var(--chalk-16)" : "none",
-            }}
           >
             {label}
           </button>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }
 
 export default function Filters({
-  value, onChange, count,
-}: { value: FilterState; onChange: (v: FilterState) => void; count: number }) {
+  value, onChange, locating, locError,
+}: {
+  value: FilterState;
+  onChange: (v: FilterState) => void;
+  /** 現在地を取得中 */
+  locating?: boolean;
+  /** 現在地が取れなかったときの説明 */
+  locError?: string | null;
+}) {
   const set = (p: Partial<FilterState>) => onChange({ ...value, ...p });
   return (
-    <div className="panel rule-b no-bar relative flex items-center gap-3 overflow-x-auto px-4 py-2.5">
-      <Seg
-        items={[["all", "すべて"], ["training_match", "TM"], ["helper", "助っ人"]] as const}
-        value={value.kind} onPick={(v) => set({ kind: v })}
-      />
-      <Seg
-        items={[[7, "今週"], [14, "2週"], [30, "1ヶ月"], [0, "全部"]] as const}
-        value={value.within} onPick={(v) => set({ within: v })}
-      />
-      <Seg
-        items={[["all", "レベル不問"], ["beginner", "初心者"], ["casual", "エンジョイ"], ["competitive", "本格"]] as const}
-        value={value.level} onPick={(v) => set({ level: v })}
-      />
-      <p className="dsp ml-auto shrink-0 text-[13px]" style={{ color: "var(--chalk-60)" }}>
-        {count}<span className="ml-1 text-[10px]">件</span>
-      </p>
+    <div className="flex flex-col gap-2">
+      {/* スマホでは右端をぼかして「まだ右にある」ことを示す */}
+      <div className="scroll-hint -mx-4 md:mx-0">
+      <div className="no-bar flex gap-4 overflow-x-auto px-4 md:flex-col md:gap-2 md:overflow-visible md:px-0">
+        <Row
+          title="種別"
+          items={[["all", "すべて"], ["training_match", "トレーニングマッチ"], ["helper", "助っ人募集"]] as const}
+          value={value.kind} onPick={(v) => set({ kind: v })}
+        />
+        <Row
+          title="いつ"
+          items={[[7, "1週間以内"], [14, "2週間以内"], [30, "1ヶ月以内"], [0, "すべて"]] as const}
+          value={value.within} onPick={(v) => set({ within: v })}
+        />
+        <Row
+          title="現在地から"
+          items={[[0, "指定なし"], [10, "10km以内"], [20, "20km以内"], [30, "30km以内"], [50, "50km以内"]] as const}
+          value={value.radiusKm} onPick={(v) => set({ radiusKm: v })}
+          busy={locating}
+        />
+        <Row
+          title="レベル"
+          items={[["all", "問わない"], ["beginner", "初心者歓迎"], ["casual", "エンジョイ"], ["competitive", "本格志向"]] as const}
+          value={value.level} onPick={(v) => set({ level: v })}
+        />
+      </div>
+      </div>
+      {locating && (
+        <p className="text-[13px]" style={{ color: "var(--text-sub)" }}>現在地を取得しています…</p>
+      )}
+      {locError && (
+        <p className="text-[13px] font-bold" style={{ color: "var(--danger)" }}>{locError}</p>
+      )}
     </div>
   );
 }

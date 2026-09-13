@@ -1,110 +1,149 @@
 @import "tailwindcss";
 
 /* ============================================================
-   公営グラウンドのナイター掲示板
-   夜の地面に、白線（チョーク）で情報を引く。
-   面を増やさず、線と余白で区切る。角丸は使わない。
+   ピッチメイト
+   方針: 読みやすさと押しやすさを最優先にする。
+   - 明るい地に濃い文字。本文は 14px 以上、主要情報は 16px 以上
+   - 押せるものは高さ 44px 以上、押せると分かる見た目にする
+   - 色は「種別」と「選択中」と「行動」の3つにだけ意味を持たせる
    ============================================================ */
 :root {
-  --night:    #151a18;  /* 夜のグラウンド。地 */
-  --night-2:  #1c2321;  /* 一段持ち上げた面 */
-  --night-3:  #232b29;  /* 押された面 */
-  --chalk:    #f4f1e8;  /* 白線と文字 */
-  --chalk-60: rgba(244,241,232,.60);
-  --chalk-38: rgba(244,241,232,.38);  /* 線・装飾専用。文字には使わない */
-  --chalk-sub: rgba(244,241,232,.66); /* 補助テキスト。夜の地でAAを満たす */
-  --chalk-16: rgba(244,241,232,.16);
-  --chalk-08: rgba(244,241,232,.08);
-  --turf:     #45a771;  /* トレーニングマッチ。選択行の面(--night-3)の上でもAAを満たす明度 */
-  --flood:    #e7d15e;  /* 選択中・注目 */
-  --cone:     #e86f2a;  /* 助っ人 */
+  --bg:        #f4f6f8;  /* 画面の地 */
+  --surface:   #ffffff;  /* カード・パネル */
+  --line:      #dfe3e8;  /* 区切り線・枠 */
+  --text:      #1b1f24;  /* 本文 */
+  --text-sub:  #5c6470;  /* 補助テキスト。白地で AA を満たす */
+  --primary:   #1f7a3f;  /* 行動（ボタン・選択中） */
+  --primary-dk:#175e31;
+  --primary-bg:#e8f4ec;  /* 選択中カードの地 */
+  --match:     #2457c5;  /* トレーニングマッチ */
+  --match-bg:  #e7eefb;
+  --helper:    #d3541b;  /* 助っ人 */
+  --helper-bg: #fdeee5;
+  --danger:    #c0392b;
 }
 
 * { box-sizing: border-box; }
 
 html, body {
   margin: 0;
-  color: var(--chalk);
-  font-family: var(--font-body), "Hiragino Sans", sans-serif;
-  font-feature-settings: "palt";
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body), "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  /* 照明は上から落ちる。均一なノイズは敷かない */
-  background-image:
-    linear-gradient(180deg, rgba(231,209,94,.07) 0%, rgba(231,209,94,.02) 22%, transparent 46%),
-    radial-gradient(140% 42% at 50% -6%, rgba(231,209,94,.10), transparent 60%);
-  background-attachment: fixed;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* 面。上端が明るく、下へ落ちる。浮かせず、置く */
-.panel {
-  background:
-    linear-gradient(180deg, rgba(244,241,232,.045), rgba(244,241,232,0) 38%),
-    var(--night-2);
-  box-shadow: inset 0 1px 0 rgba(244,241,232,.07);
-}
-.panel-on {
-  background:
-    linear-gradient(180deg, rgba(231,209,94,.16), rgba(231,209,94,.02) 46%),
-    var(--night-3);
-  box-shadow: inset 0 1px 0 rgba(231,209,94,.45);
-}
+/* 数字の桁を揃える（日付・時刻・金額） */
+.num { font-variant-numeric: tabular-nums; }
 
-/* 掲示の組版。項目名の幅を固定して罫線に揃える */
-.spec { display: grid; grid-template-columns: 4.2em 1fr; }
-.spec > dt {
-  font-size: 10px; font-weight: 700; letter-spacing: .04em;
-  color: var(--chalk-sub); padding: .34rem 0;
+/* 白いパネル。区切りは薄い線と、ごく浅い影 */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
 }
-.spec > dd {
-  margin: 0; font-size: 11.5px; line-height: 1.45;
-  padding: .34rem 0; color: var(--chalk);
-}
-.spec > dt, .spec > dd { border-top: 1px solid var(--chalk-08); }
-.spec > dt:first-of-type, .spec > dd:first-of-type { border-top: 0; }
-
-/* 選択が移った瞬間だけ、白線を左から引く */
-@keyframes chalk-in { from { transform: scaleX(0); opacity: .2; } to { transform: scaleX(1); opacity: 1; } }
-.chalk-in { transform-origin: left; animation: chalk-in .26s ease-out both; }
-
-/* 数字・英字は必ず表示書体で。時刻と日付の桁を揃える */
-.dsp {
-  font-family: var(--font-display), "Hiragino Sans", sans-serif;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
-  letter-spacing: .01em;
-  line-height: .9;
-}
-/* 案内板の小見出し */
-.sign {
-  font-family: var(--font-display), sans-serif;
-  font-weight: 600;
-  letter-spacing: .18em;
-  text-transform: uppercase;
+.card-active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(31, 122, 63, .12);
 }
 
-/* チョークの線。1本で区切る */
-.rule-b { border-bottom: 1px solid var(--chalk-16); }
-.rule-t { border-top: 1px solid var(--chalk-16); }
-
-/* コーナーの円弧。カードの左上に引く */
-.corner-arc::before {
-  content: "";
-  position: absolute; top: 0; left: 0;
-  width: 22px; height: 22px;
-  border-right: 1px solid var(--chalk-38);
-  border-bottom: 1px solid var(--chalk-38);
-  border-bottom-right-radius: 22px;
-  pointer-events: none;
+/* 押せるチップ。高さ 40px、選択中は塗る */
+.chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 40px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface); color: var(--text);
+  font-size: 14px; font-weight: 700; white-space: nowrap;
+  cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+}
+.chip:hover { border-color: #b9c1cb; }
+.chip[aria-pressed="true"] {
+  background: var(--primary); border-color: var(--primary); color: #fff;
 }
 
-/* 読み込み時に順に立ち上げる */
-@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.rise { animation: rise .5s cubic-bezier(.22,1,.36,1) both; }
+/* 主要ボタン */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 0 18px;
+  border-radius: 10px; border: 1px solid transparent;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dk); }
+.btn-ghost { background: var(--surface); color: var(--text); border-color: var(--line); }
+.btn-ghost:hover { border-color: #b9c1cb; }
 
-/* 横スクロールバーは隠す */
+/* 種別バッジ */
+.badge {
+  display: inline-flex; align-items: center;
+  height: 26px; padding: 0 10px; border-radius: 6px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: .02em;
+}
+.badge-match  { background: var(--match-bg);  color: var(--match); }
+.badge-helper { background: var(--helper-bg); color: var(--helper); }
+.badge-gray   { background: #eef1f4; color: var(--text-sub); }
+
+/* フォーム部品。iOS で拡大されないよう 16px */
+.field {
+  width: 100%; min-height: 46px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface); color: var(--text);
+  font-size: 16px; line-height: 1.4; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(31,122,63,.18); }
+.label { display: block; font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.hint  { font-size: 12.5px; color: var(--text-sub); margin-top: 6px; }
+
+/* 横スクロール領域のバーは隠す（チップ列） */
 .no-bar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-bar::-webkit-scrollbar { display: none; }
 
+/* 地図上のピン */
+.pin {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 30px; padding: 0 10px; border-radius: 999px;
+  background: var(--surface); color: var(--text);
+  border: 2px solid var(--line);
+  font-size: 13px; font-weight: 700; white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(16, 24, 40, .18);
+  cursor: pointer; transition: transform .15s;
+}
+.pin::after {
+  /* 下向きの小さな三角。会場の位置を指す */
+  content: ""; position: absolute; left: 50%; bottom: -7px;
+  width: 10px; height: 10px; transform: translateX(-50%) rotate(45deg);
+  background: inherit; border-right: 2px solid; border-bottom: 2px solid; border-color: inherit;
+  border-bottom-right-radius: 2px;
+}
+.pin-match  { border-color: var(--match);  color: var(--match); }
+.pin-helper { border-color: var(--helper); color: var(--helper); }
+.pin-active {
+  background: var(--primary); border-color: var(--primary); color: #fff;
+  transform: scale(1.08);
+}
+
+/* 横スクロールの右端をぼかす。PC では不要 */
+.scroll-hint { position: relative; }
+.scroll-hint::after {
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 40px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), var(--surface));
+  pointer-events: none;
+}
+@media (min-width: 768px) { .scroll-hint::after { display: none; } }
+
+/* 現在地の点 */
+.me {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #1d6fe0; border: 3px solid #fff;
+  box-shadow: 0 0 0 2px rgba(29,111,224,.35), 0 2px 6px rgba(16,24,40,.3);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .rise, .chalk-in { animation: none; }
+  * { transition: none !important; animation: none !important; }
 }
