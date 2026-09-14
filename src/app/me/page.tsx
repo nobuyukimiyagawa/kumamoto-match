@@ -9,7 +9,7 @@ import { fmtDate } from "@/components/PostCard";
 import { StarInput, Stars } from "@/components/Stars";
 import ProfileForm from "@/components/ProfileForm";
 import {
-  AUTH_MODE, addRating, applicationsForPost, cancelApplication, closePost, getAuthMeta, getPost, getProfile, isPast,
+  AUTH_MODE, addRating, applicationsForPost, cancelApplication, closePost, getPost, getProfile, isPast,
   listPosts, pendingRatingsFor, ratingSummary, resetDB, teamsRunBy, useDB, useSessionId,
   type PendingRating, type PostView,
 } from "@/lib/store";
@@ -39,7 +39,10 @@ export default function MyPage() {
               いまはデモ中です。右上の「アカウント」から誰として使うかを選んでください。
             </p>
           ) : (
-            <Link href="/login/" className="btn btn-primary mt-4">ログイン・新規登録</Link>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <Link href="/signup/" className="btn btn-primary">新規登録（無料）</Link>
+              <Link href="/login/" className="btn btn-ghost">ログイン</Link>
+            </div>
           )}
         </div>
         <BottomNav />
@@ -47,17 +50,15 @@ export default function MyPage() {
     );
   }
 
-  // ログインはしているがプロフィールが無い（初回）→ 登録してもらう
+  // ログインはしているがプロフィールが無い（初回）→ ようこそ画面で登録してもらう
   if (!me) {
     return (
       <main className="min-h-dvh pb-24 sm:pb-10">
         <Header />
-        <div className="mx-auto max-w-2xl px-4 pt-6">
-          <h1 className="text-[22px] font-bold">はじめまして</h1>
-          <p className="mt-1 mb-4 text-[14px]" style={{ color: "var(--text-sub)" }}>
-            最初にプロフィールを登録してください。募集チームや対戦相手に見える情報です。
-          </p>
-          <ProfileForm id={sid} defaultName={getAuthMeta()?.name} onDone={() => {}} />
+        <div className="mx-auto max-w-2xl px-4 pt-8 text-center">
+          <p className="text-[16px] font-bold">初めてのようです</p>
+          <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>プロフィールを登録すると、募集やエントリーができるようになります。</p>
+          <Link href="/welcome/" className="btn btn-primary mt-4">プロフィールを登録する</Link>
         </div>
         <BottomNav />
       </main>

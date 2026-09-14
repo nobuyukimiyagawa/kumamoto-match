@@ -4,6 +4,9 @@
 > - Google: Google Cloud プロジェクト `pitchmate-508613`、OAuth クライアント `pitchmate-web`
 > - LINE: プロバイダー「ピッチメイト」、LINE ログインチャネル ID `2011602303`（公開済み）
 > - Edge Function `line-auth` はダッシュボードから配置（Verify JWT = OFF）、secrets 3件設定済み
+> - 画面は /signup/（新規登録）と /login/（ログイン）に分離。認証後は /auth/done/ で
+>   プロフィール有無と intent（localStorage `pitchmate-auth-intent`）を見て /welcome/ か /me/ へ。
+>   Supabase の Redirect URLs に `https://nobuyukimiyagawa.github.io/kumamoto-match/**` を追加済み
 > - LINE のメールアドレス取得権限は 2026-09-14 に申請済み（承認待ち）。承認前に LINE で
 >   ログインした人は `line_<id>@line.pitchmate.invalid` の代替アドレスで別ユーザーになる。
 >   承認後は scope に email が入っているので自動で統合される（追加作業なし）

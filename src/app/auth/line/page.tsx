@@ -21,13 +21,14 @@ function Finish() {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const tokenHash = hash.get("token_hash");
     const err = params.get("error");
-    if (err) { setError(err); return; }
-    if (!tokenHash) { setError("トークンがありません。"); return; }
+    const fail = (m: string) => window.setTimeout(() => setError(m), 0);
+    if (err) { fail(err); return; }
+    if (!tokenHash) { fail("トークンがありません。"); return; }
     // 使い終わったトークンは URL から消す
     history.replaceState(null, "", window.location.pathname);
     finishLineLogin(tokenHash).then((r) => {
       if (r.error) setError(r.error);
-      else router.replace("/me/");
+      else router.replace("/auth/done/");
     });
   }, [params, router]);
 

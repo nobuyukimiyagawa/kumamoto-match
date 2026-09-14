@@ -152,17 +152,19 @@ export const supabaseBackend: Backend = {
   getSessionId: () => sessionId,
 
   async signInWithEmail(email) {
-    const { error } = await sb().auth.signInWithOtp({ email, options: { emailRedirectTo: siteUrl() } });
+    const { error } = await sb().auth.signInWithOtp({ email, options: { emailRedirectTo: siteUrl() + "auth/done/" } });
     return error ? { error: error.message } : {};
   },
   async signInWithGoogle() {
-    const { error } = await sb().auth.signInWithOAuth({ provider: "google", options: { redirectTo: siteUrl() } });
+    const { error } = await sb().auth.signInWithOAuth({ provider: "google", options: { redirectTo: siteUrl() + "auth/done/" } });
     return error ? { error: error.message } : {};
   },
   signInWithLine() {
     // Edge Function が LINE の認可画面へ飛ばし、戻りは /auth/line/?token_hash=... に来る
     const back = siteUrl() + "auth/line/";
-    window.location.href = `${URL}/functions/v1/line-auth/start?return=${encodeURIComponent(back)}`;
+    // 外部（Supabase の Edge Function）へ移動する。Next のページ遷移ではない
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.assign(`${URL}/functions/v1/line-auth/start?return=${encodeURIComponent(back)}`);
   },
   async finishLineLogin(tokenHash) {
     const { error } = await sb().auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });

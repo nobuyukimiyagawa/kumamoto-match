@@ -31,7 +31,10 @@ export default function NewTeamPage() {
         {!sid ? (
           <div className="card mt-5 p-5 text-center">
             <p className="font-bold">チームを作るにはログインが必要です</p>
-            <Link href="/login/" className="btn btn-primary mt-4">ログイン</Link>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <Link href="/signup/" className="btn btn-primary">新規登録（無料）</Link>
+              <Link href="/login/" className="btn btn-ghost">ログイン</Link>
+            </div>
           </div>
         ) : (
           <form

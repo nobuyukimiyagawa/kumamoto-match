@@ -83,9 +83,14 @@ export default function Header({ subtitle }: { subtitle?: string }) {
             </button>
           </>
         ) : (
-          <Link href="/login/" className="btn btn-ghost" style={{ minHeight: 40, padding: "0 14px" }}>
-            ログイン
-          </Link>
+          <>
+            <Link href="/login/" className="btn btn-ghost" style={{ minHeight: 40, padding: "0 12px" }}>
+              ログイン
+            </Link>
+            <Link href="/signup/" className="btn btn-primary" style={{ minHeight: 40, padding: "0 12px" }}>
+              新規登録
+            </Link>
+          </>
         )}
         {myTeams.length > 0 && (
           <Link href="/post/new/" className="btn btn-primary hidden shrink-0 sm:inline-flex" style={{ minHeight: 40, padding: "0 14px" }}>

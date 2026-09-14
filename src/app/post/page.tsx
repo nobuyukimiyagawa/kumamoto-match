@@ -158,8 +158,12 @@ function EntryPanel({
   if (!meId) {
     return (
       <div className="card mt-3 p-5 text-center">
-        <p className="text-[15px] font-bold">エントリーするにはログインが必要です</p>
-        <Link href="/login/" className="btn btn-primary mt-4">ログイン・新規登録</Link>
+        <p className="text-[15px] font-bold">エントリーするには登録が必要です</p>
+        <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>無料で、Google・LINE・メールのどれでも登録できます。</p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+          <Link href="/signup/" className="btn btn-primary">新規登録（無料）</Link>
+          <Link href="/login/" className="btn btn-ghost">ログイン</Link>
+        </div>
       </div>
     );
   }
