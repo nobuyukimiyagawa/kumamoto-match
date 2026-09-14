@@ -51,6 +51,7 @@ export const localBackend: Backend = {
     } catch { /* ignore */ }
     sessionListeners.forEach((l) => l());
   },
+  getAuthMeta() { return null; },
   async signOut() { this.setSession!(null); },
 
   async upsertProfile(id, input) {

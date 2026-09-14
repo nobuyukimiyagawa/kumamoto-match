@@ -36,6 +36,14 @@ export function setSession(profileId: string | null) { backend.setSession?.(prof
 export function signInWithEmail(email: string) {
   return backend.signInWithEmail ? backend.signInWithEmail(email) : Promise.resolve({ error: "このモードではメールログインは使えません" });
 }
+export function signInWithGoogle() {
+  return backend.signInWithGoogle ? backend.signInWithGoogle() : Promise.resolve({ error: "このモードでは使えません" });
+}
+export function signInWithLine() { backend.signInWithLine?.(); }
+export function finishLineLogin(tokenHash: string) {
+  return backend.finishLineLogin ? backend.finishLineLogin(tokenHash) : Promise.resolve({ error: "このモードでは使えません" });
+}
+export function getAuthMeta() { return backend.getAuthMeta(); }
 export function signOut() { return backend.signOut(); }
 export function resetDB() { backend.reset?.(); }
 

@@ -70,6 +70,7 @@ const toRating = (r: Row): Rating => ({
 
 let db: DB = EMPTY_DB;
 let sessionId: string | null = null;
+let authMeta: { name?: string; email?: string } | null = null;
 const dbListeners = new Set<() => void>();
 const sessionListeners = new Set<() => void>();
 let started = false;
@@ -109,12 +110,20 @@ function start() {
   if (started || typeof window === "undefined") return;
   started = true;
   const c = sb();
+  const pickMeta = (u: { email?: string; user_metadata?: Record<string, unknown> } | null | undefined) => {
+    if (!u) return null;
+    const m = u.user_metadata ?? {};
+    const name = (m.full_name ?? m.name ?? m.display_name) as string | undefined;
+    return { name, email: u.email };
+  };
   c.auth.getSession().then(({ data }) => {
     sessionId = data.session?.user.id ?? null;
+    authMeta = pickMeta(data.session?.user);
     sessionListeners.forEach((l) => l());
   });
   c.auth.onAuthStateChange((_e, session) => {
     const next = session?.user.id ?? null;
+    authMeta = pickMeta(session?.user);
     if (next !== sessionId) {
       sessionId = next;
       sessionListeners.forEach((l) => l());
@@ -129,6 +138,11 @@ function fail(e: { message: string } | null): never | void {
   if (e) throw new Error(e.message);
 }
 
+/** サイトのトップ（basePath 込み、末尾スラッシュあり）。ログイン後の戻り先に使う */
+function siteUrl() {
+  return window.location.origin + (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + "/";
+}
+
 export const supabaseBackend: Backend = {
   mode: "supabase",
 
@@ -138,10 +152,23 @@ export const supabaseBackend: Backend = {
   getSessionId: () => sessionId,
 
   async signInWithEmail(email) {
-    const redirect = typeof window !== "undefined" ? window.location.origin + (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + "/" : undefined;
-    const { error } = await sb().auth.signInWithOtp({ email, options: { emailRedirectTo: redirect } });
+    const { error } = await sb().auth.signInWithOtp({ email, options: { emailRedirectTo: siteUrl() } });
     return error ? { error: error.message } : {};
   },
+  async signInWithGoogle() {
+    const { error } = await sb().auth.signInWithOAuth({ provider: "google", options: { redirectTo: siteUrl() } });
+    return error ? { error: error.message } : {};
+  },
+  signInWithLine() {
+    // Edge Function が LINE の認可画面へ飛ばし、戻りは /auth/line/?token_hash=... に来る
+    const back = siteUrl() + "auth/line/";
+    window.location.href = `${URL}/functions/v1/line-auth/start?return=${encodeURIComponent(back)}`;
+  },
+  async finishLineLogin(tokenHash) {
+    const { error } = await sb().auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
+    return error ? { error: error.message } : {};
+  },
+  getAuthMeta() { return authMeta; },
   async signOut() { await sb().auth.signOut(); },
 
   async upsertProfile(id, input) {

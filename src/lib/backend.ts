@@ -52,6 +52,14 @@ export interface Backend {
   setSession?(profileId: string | null): void;
   /** supabase: マジックリンクを送る */
   signInWithEmail?(email: string): Promise<{ error?: string }>;
+  /** supabase: Google でログイン（Supabase 標準の OAuth） */
+  signInWithGoogle?(): Promise<{ error?: string }>;
+  /** supabase: LINE でログイン（Edge Function 経由） */
+  signInWithLine?(): void;
+  /** supabase: LINE の Edge Function から戻ってきたトークンでセッションを作る */
+  finishLineLogin?(tokenHash: string): Promise<{ error?: string }>;
+  /** ログイン中ユーザーの、認証プロバイダ由来の情報（初回のプロフィール入力の初期値に使う） */
+  getAuthMeta(): { name?: string; email?: string } | null;
   signOut(): Promise<void>;
 
   // 更新

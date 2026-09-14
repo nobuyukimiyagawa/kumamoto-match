@@ -9,7 +9,7 @@ import { fmtDate } from "@/components/PostCard";
 import { StarInput, Stars } from "@/components/Stars";
 import ProfileForm from "@/components/ProfileForm";
 import {
-  AUTH_MODE, addRating, applicationsForPost, cancelApplication, closePost, getPost, getProfile, isPast,
+  AUTH_MODE, addRating, applicationsForPost, cancelApplication, closePost, getAuthMeta, getPost, getProfile, isPast,
   listPosts, pendingRatingsFor, ratingSummary, resetDB, teamsRunBy, useDB, useSessionId,
   type PendingRating, type PostView,
 } from "@/lib/store";
@@ -57,7 +57,7 @@ export default function MyPage() {
           <p className="mt-1 mb-4 text-[14px]" style={{ color: "var(--text-sub)" }}>
             最初にプロフィールを登録してください。募集チームや対戦相手に見える情報です。
           </p>
-          <ProfileForm id={sid} onDone={() => {}} />
+          <ProfileForm id={sid} defaultName={getAuthMeta()?.name} onDone={() => {}} />
         </div>
         <BottomNav />
       </main>

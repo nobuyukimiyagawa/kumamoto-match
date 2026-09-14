@@ -8,9 +8,9 @@ const POSITIONS: Position[] = ["GK", "DF", "MF", "FW", "ANY"];
 
 /** 個人プロフィールの登録・編集。住所は市区町村まで */
 export default function ProfileForm({
-  id, initial, onDone, onCancel,
-}: { id: string; initial?: Profile | null; onDone: () => void; onCancel?: () => void }) {
-  const [name, setName] = useState(initial?.displayName ?? "");
+  id, initial, defaultName, onDone, onCancel,
+}: { id: string; initial?: Profile | null; defaultName?: string; onDone: () => void; onCancel?: () => void }) {
+  const [name, setName] = useState(initial?.displayName ?? defaultName ?? "");
   const [city, setCity] = useState(initial?.city ?? "");
   const [positions, setPositions] = useState<Position[]>(initial?.positions ?? []);
   const [years, setYears] = useState<string>(initial?.years != null ? String(initial.years) : "");

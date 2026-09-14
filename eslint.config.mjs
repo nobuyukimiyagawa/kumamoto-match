@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // MapLibre の Worker 複製（scripts/copy-maplibre-worker.mjs が生成）
     "public/maplibre/**",
+    // Deno で動く Edge Function。Next の lint 対象外
+    "supabase/functions/**",
   ]),
 ]);
 
