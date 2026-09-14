@@ -17,10 +17,14 @@ function Finish() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const tokenHash = params.get("token_hash");
+    // token_hash は # 以降に来る（URL の履歴やログに残さないため）。error はクエリで来る
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const tokenHash = hash.get("token_hash");
     const err = params.get("error");
     if (err) { setError(err); return; }
     if (!tokenHash) { setError("トークンがありません。"); return; }
+    // 使い終わったトークンは URL から消す
+    history.replaceState(null, "", window.location.pathname);
     finishLineLogin(tokenHash).then((r) => {
       if (r.error) setError(r.error);
       else router.replace("/me/");

@@ -39,11 +39,22 @@ function backWithError(ret: string, msg: string) {
   return redirect(u.toString());
 }
 
-/** 戻り先はサイト配下だけ許す（オープンリダイレクト防止） */
+/**
+ * 戻り先はサイト配下か localhost だけ許す（オープンリダイレクト防止）。
+ * 文字列の前方一致ではなく URL を解析して、プロトコル・ホスト・ポートを厳密に比べる。
+ * （"http://localhost:3000@evil.com/" のような URL を通さないため）
+ */
 function safeReturn(ret: string | null) {
   if (!ret) return null;
-  if (SITE_URL && ret.startsWith(SITE_URL)) return ret;
-  if (ret.startsWith("http://localhost:")) return ret;
+  let u: URL;
+  try { u = new URL(ret); } catch { return null; }
+  if (u.username || u.password) return null;
+  if (SITE_URL) {
+    const site = new URL(SITE_URL);
+    if (u.protocol === site.protocol && u.hostname === site.hostname && u.port === site.port
+        && u.pathname.startsWith(site.pathname)) return u.toString();
+  }
+  if (u.protocol === "http:" && u.hostname === "localhost") return u.toString();
   return null;
 }
 
@@ -136,8 +147,9 @@ Deno.serve(async (req) => {
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({ type: "magiclink", email });
     if (linkErr || !link?.properties?.hashed_token) return backWithError(ret, "link_failed");
 
+    // token_hash はクエリでなくフラグメント（#）で渡す。サーバーログや Referer に残らない
     const back = new URL(ret);
-    back.searchParams.set("token_hash", link.properties.hashed_token);
+    back.hash = "token_hash=" + encodeURIComponent(link.properties.hashed_token);
     const res = redirect(back.toString());
     res.headers.append("Set-Cookie", "line_state=; Path=/; Max-Age=0");
     res.headers.append("Set-Cookie", "line_return=; Path=/; Max-Age=0");
