@@ -12,7 +12,10 @@
 >   承認後は scope に email が入っているので自動で統合される（追加作業なし）
 
 方針: **見るだけならログイン不要。募集する・エントリーする・マイページはログイン必須。**
-ログイン手段は メールのリンク / Google / LINE の3つ。
+ログイン手段は メール＋パスワード / Google / LINE の3つ（2026-09-14 にマジックリンクからパスワード方式へ変更）。
+- 新規登録: メール＋パスワード（8文字以上）→ 確認メールのリンクで有効化 → /auth/done/ → /welcome/
+- パスワード再設定: /auth/forgot/ でメール送信 → リンクで /auth/reset/ → 新パスワード保存
+- Google / LINE はパスワード無し
 
 Supabase プロジェクト: https://supabase.com/dashboard/project/hyzvldrmasniedxsiohh
 本番サイト: https://nobuyukimiyagawa.github.io/kumamoto-match/

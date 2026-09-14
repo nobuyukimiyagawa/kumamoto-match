@@ -151,8 +151,24 @@ export const supabaseBackend: Backend = {
   subscribeSession(l) { start(); sessionListeners.add(l); return () => { sessionListeners.delete(l); }; },
   getSessionId: () => sessionId,
 
-  async signInWithEmail(email) {
-    const { error } = await sb().auth.signInWithOtp({ email, options: { emailRedirectTo: siteUrl() + "auth/done/" } });
+  async signUpWithPassword(email, password) {
+    const { data, error } = await sb().auth.signUp({
+      email, password, options: { emailRedirectTo: siteUrl() + "auth/done/" },
+    });
+    if (error) return { error: error.message };
+    // 確認メール必須の設定では session が null で返る
+    return { needsConfirm: !data.session };
+  },
+  async signInWithPassword(email, password) {
+    const { error } = await sb().auth.signInWithPassword({ email, password });
+    return error ? { error: error.message } : {};
+  },
+  async sendPasswordReset(email) {
+    const { error } = await sb().auth.resetPasswordForEmail(email, { redirectTo: siteUrl() + "auth/reset/" });
+    return error ? { error: error.message } : {};
+  },
+  async updatePassword(password) {
+    const { error } = await sb().auth.updateUser({ password });
     return error ? { error: error.message } : {};
   },
   async signInWithGoogle() {

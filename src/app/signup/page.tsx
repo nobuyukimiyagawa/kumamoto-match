@@ -19,7 +19,7 @@ export default function SignupPage() {
         </p>
 
         <ol className="card mt-5 flex flex-col gap-2 p-4 text-[14px]">
-          <li className="flex gap-2"><span className="badge badge-match">1</span>ログイン方法を選ぶ（Google / LINE / メール）</li>
+          <li className="flex gap-2"><span className="badge badge-match">1</span>ログイン方法を選ぶ（Google / LINE / メール＋パスワード）</li>
           <li className="flex gap-2"><span className="badge badge-match">2</span>プロフィールを登録（表示名・エリア・ポジション）</li>
           <li className="flex gap-2"><span className="badge badge-match">3</span>完了。募集やエントリーができます</li>
         </ol>

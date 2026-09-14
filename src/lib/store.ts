@@ -33,8 +33,18 @@ export function useSessionId(): string | null {
 // ---------- 認証 ----------
 
 export function setSession(profileId: string | null) { backend.setSession?.(profileId); }
-export function signInWithEmail(email: string) {
-  return backend.signInWithEmail ? backend.signInWithEmail(email) : Promise.resolve({ error: "このモードではメールログインは使えません" });
+const NA = { error: "このモードでは使えません" };
+export function signUpWithPassword(email: string, password: string) {
+  return backend.signUpWithPassword ? backend.signUpWithPassword(email, password) : Promise.resolve(NA);
+}
+export function signInWithPassword(email: string, password: string) {
+  return backend.signInWithPassword ? backend.signInWithPassword(email, password) : Promise.resolve(NA);
+}
+export function sendPasswordReset(email: string) {
+  return backend.sendPasswordReset ? backend.sendPasswordReset(email) : Promise.resolve(NA);
+}
+export function updatePassword(password: string) {
+  return backend.updatePassword ? backend.updatePassword(password) : Promise.resolve(NA);
 }
 export function signInWithGoogle() {
   return backend.signInWithGoogle ? backend.signInWithGoogle() : Promise.resolve({ error: "このモードでは使えません" });

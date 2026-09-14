@@ -50,8 +50,14 @@ export interface Backend {
   // 認証
   /** local: プロフィールIDを直接指定。supabase: 使わない */
   setSession?(profileId: string | null): void;
-  /** supabase: マジックリンクを送る */
-  signInWithEmail?(email: string): Promise<{ error?: string }>;
+  /** supabase: メール＋パスワードで新規登録（確認メールが送られる） */
+  signUpWithPassword?(email: string, password: string): Promise<{ error?: string; needsConfirm?: boolean }>;
+  /** supabase: メール＋パスワードでログイン */
+  signInWithPassword?(email: string, password: string): Promise<{ error?: string }>;
+  /** supabase: パスワード再設定メールを送る */
+  sendPasswordReset?(email: string): Promise<{ error?: string }>;
+  /** supabase: 再設定リンクから来たセッションで新しいパスワードを保存する */
+  updatePassword?(password: string): Promise<{ error?: string }>;
   /** supabase: Google でログイン（Supabase 標準の OAuth） */
   signInWithGoogle?(): Promise<{ error?: string }>;
   /** supabase: LINE でログイン（Edge Function 経由） */
