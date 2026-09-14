@@ -4,8 +4,9 @@
 > - Google: Google Cloud プロジェクト `pitchmate-508613`、OAuth クライアント `pitchmate-web`
 > - LINE: プロバイダー「ピッチメイト」、LINE ログインチャネル ID `2011602303`（公開済み）
 > - Edge Function `line-auth` はダッシュボードから配置（Verify JWT = OFF）、secrets 3件設定済み
-> - 未対応: LINE のメールアドレス取得権限（未申請）。このため LINE ユーザーは
->   `line_<id>@line.pitchmate.invalid` の代替アドレスで別ユーザーになる
+> - LINE のメールアドレス取得権限は 2026-09-14 に申請済み（承認待ち）。承認前に LINE で
+>   ログインした人は `line_<id>@line.pitchmate.invalid` の代替アドレスで別ユーザーになる。
+>   承認後は scope に email が入っているので自動で統合される（追加作業なし）
 
 方針: **見るだけならログイン不要。募集する・エントリーする・マイページはログイン必須。**
 ログイン手段は メールのリンク / Google / LINE の3つ。
