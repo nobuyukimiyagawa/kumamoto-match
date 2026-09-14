@@ -1,17 +1,19 @@
 "use client";
 
 import { useMemo, useRef, useState, useCallback } from "react";
-import Link from "next/link";
+import Header from "@/components/Header";
+import BottomNav from "@/components/BottomNav";
 import SearchMap from "@/components/SearchMap";
 import PostCard from "@/components/PostCard";
 import Filters, { type FilterState } from "@/components/Filters";
-import { POSTS } from "@/lib/mock";
 import { SITE } from "@/config/site";
 import { distanceKm } from "@/lib/geo";
+import { applicationsForPost, listPosts, ratingSummary, useDB } from "@/lib/store";
 
 export type LatLng = { lat: number; lng: number };
 
 export default function SearchPage() {
+  const db = useDB();
   const [filter, setFilter] = useState<FilterState>({ kind: "all", level: "all", within: 30, radiusKm: 0 });
   const [activeId, setActiveId] = useState<string | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -22,20 +24,19 @@ export default function SearchPage() {
 
   const posts = useMemo(() => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    return POSTS.filter((p) => {
-      if (p.status !== "open") return false;
+    return listPosts(db).filter((p) => {
+      if (p.status === "closed") return false;
       if (filter.kind !== "all" && p.kind !== filter.kind) return false;
       if (filter.level !== "all" && p.level !== filter.level) return false;
-      if (filter.within) {
-        const diff = (new Date(p.date + "T00:00:00").getTime() - today.getTime()) / 86400000;
-        if (diff < 0 || diff > filter.within) return false;
-      }
+      const diff = (new Date(p.date + "T00:00:00").getTime() - today.getTime()) / 86400000;
+      if (diff < 0) return false;                       // 過ぎた募集は出さない
+      if (filter.within && diff > filter.within) return false;
       if (filter.radiusKm && origin) {
         if (distanceKm(origin, p.venue) > filter.radiusKm) return false;
       }
       return true;
     }).sort((a, b) => a.date.localeCompare(b.date));
-  }, [filter, origin]);
+  }, [db, filter, origin]);
 
   // 距離の絞り込みを選んだら、その場で現在地を取りに行く
   const locate = useCallback(() => {
@@ -82,25 +83,10 @@ export default function SearchPage() {
 
   return (
     <main className="flex h-dvh flex-col">
-      {/* ヘッダー。サービス名と、いちばん大事な行動だけ */}
-      <header
-        className="flex items-center gap-3 px-4 py-2.5"
-        style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}
-      >
-        <div className="min-w-0">
-          <p className="text-[17px] font-bold leading-tight">{SITE.name}</p>
-          <p className="truncate text-[12.5px]" style={{ color: "var(--text-sub)" }}>
-            {SITE.area}のトレーニングマッチと助っ人を探す
-          </p>
-        </div>
-        <Link href="/post/new" className="btn btn-primary ml-auto shrink-0">
-          ＋ 募集する
-        </Link>
-      </header>
+      <Header subtitle={`${SITE.area}のトレーニングマッチと助っ人を探す`} />
 
       {/* スマホは 上=地図 / 下=リスト。PC は 左=リスト / 右=地図 */}
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        {/* 地図 */}
         <section
           className="relative h-[36vh] shrink-0 md:order-2 md:h-auto md:flex-1"
           style={{ borderBottom: "1px solid var(--line)" }}
@@ -112,7 +98,6 @@ export default function SearchPage() {
           />
         </section>
 
-        {/* 絞り込み + リスト */}
         <section
           className="flex min-h-0 flex-1 flex-col md:order-1 md:w-[30rem] md:flex-none"
           style={{ background: "var(--bg)", borderRight: "1px solid var(--line)" }}
@@ -151,6 +136,8 @@ export default function SearchPage() {
                     <PostCard
                       post={p} active={activeId === p.id} onSelect={() => setActiveId(p.id)}
                       distanceKm={origin ? distanceKm(origin, p.venue) : null}
+                      rating={ratingSummary(db, { kind: "team", id: p.teamId })}
+                      entries={applicationsForPost(db, p.id).filter((a) => a.status !== "rejected").length}
                     />
                   </div>
                 ))}
@@ -159,6 +146,7 @@ export default function SearchPage() {
           </div>
         </section>
       </div>
+      <BottomNav />
     </main>
   );
 }

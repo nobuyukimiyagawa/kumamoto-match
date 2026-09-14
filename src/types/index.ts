@@ -2,6 +2,7 @@ export type PostKind = "training_match" | "helper";
 export type PostStatus = "open" | "closed" | "filled";
 export type Level = "beginner" | "casual" | "competitive";
 export type Position = "GK" | "DF" | "MF" | "FW" | "ANY";
+export type MemberRole = "owner" | "admin" | "member";
 
 export type Venue = {
   id: string;
@@ -18,6 +19,23 @@ export type Team = {
   city: string;
   level: Level;
   note?: string;
+  ownerId: string;
+};
+
+/** 個人。住所は持たない（市区町村まで） */
+export type Profile = {
+  id: string;
+  displayName: string;
+  city: string;
+  positions: Position[];
+  years?: number;
+  note?: string;
+};
+
+export type TeamMember = {
+  teamId: string;
+  profileId: string;
+  role: MemberRole;
 };
 
 /** 募集。チーム間・助っ人の両方をこの1つで表す */
@@ -25,8 +43,8 @@ export type Post = {
   id: string;
   kind: PostKind;
   status: PostStatus;
-  team: Team;
-  venue: Venue;
+  teamId: string;
+  venueId: string;
   /** 試合日（YYYY-MM-DD） */
   date: string;
   startTime: string;   // HH:mm
@@ -37,6 +55,35 @@ export type Post = {
   needed?: number;
   fee?: number;        // 1人あたりの参加費（円）。0 は無料
   body: string;
+  createdAt: string;
+};
+
+/** 募集に対するエントリー。承認されると「エントリー完了」 */
+export type ApplicationStatus = "pending" | "approved" | "rejected" | "cancelled";
+
+export type Application = {
+  id: string;
+  postId: string;
+  /** チーム間なら applicantTeamId、助っ人なら applicantProfileId のどちらか一方 */
+  applicantTeamId?: string;
+  applicantProfileId?: string;
+  status: ApplicationStatus;
+  message?: string;
+  createdAt: string;
+  decidedAt?: string;
+};
+
+/** 五つ星評価。試合が終わった相手にだけ付けられる */
+export type RatingTarget = { kind: "team"; id: string } | { kind: "profile"; id: string };
+
+export type Rating = {
+  id: string;
+  postId: string;
+  applicationId: string;
+  from: RatingTarget;
+  to: RatingTarget;
+  stars: 1 | 2 | 3 | 4 | 5;
+  comment?: string;
   createdAt: string;
 };
 
@@ -55,4 +102,15 @@ export const STATUS_LABEL: Record<PostStatus, string> = {
   open: "募集中",
   closed: "締切",
   filled: "成立",
+};
+
+export const APP_STATUS_LABEL: Record<ApplicationStatus, string> = {
+  pending: "承認待ち",
+  approved: "エントリー完了",
+  rejected: "見送り",
+  cancelled: "取り消し",
+};
+
+export const POSITION_LABEL: Record<Position, string> = {
+  GK: "GK", DF: "DF", MF: "MF", FW: "FW", ANY: "どこでも",
 };

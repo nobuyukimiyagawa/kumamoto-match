@@ -36,112 +36,115 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 数字の桁を揃える（日付・時刻・金額） */
-.num { font-variant-numeric: tabular-nums; }
+/* 部品はすべて components 層に置く。Tailwind の utilities 層（hidden など）が上書きできるようにするため */
+@layer components {
+  /* 数字の桁を揃える（日付・時刻・金額） */
+  .num { font-variant-numeric: tabular-nums; }
 
-/* 白いパネル。区切りは薄い線と、ごく浅い影 */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
-}
-.card-active {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(31, 122, 63, .12);
-}
+  /* 白いパネル。区切りは薄い線と、ごく浅い影 */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  }
+  .card-active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(31, 122, 63, .12);
+  }
 
-/* 押せるチップ。高さ 40px、選択中は塗る */
-.chip {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-height: 40px; padding: 0 14px;
-  border: 1px solid var(--line); border-radius: 999px;
-  background: var(--surface); color: var(--text);
-  font-size: 14px; font-weight: 700; white-space: nowrap;
-  cursor: pointer; transition: background .15s, border-color .15s, color .15s;
-}
-.chip:hover { border-color: #b9c1cb; }
-.chip[aria-pressed="true"] {
-  background: var(--primary); border-color: var(--primary); color: #fff;
-}
+  /* 押せるチップ。高さ 40px、選択中は塗る */
+  .chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 40px; padding: 0 14px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--surface); color: var(--text);
+    font-size: 14px; font-weight: 700; white-space: nowrap;
+    cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+  }
+  .chip:hover { border-color: #b9c1cb; }
+  .chip[aria-pressed="true"], .chip[data-on="true"] {
+    background: var(--primary); border-color: var(--primary); color: #fff;
+  }
 
-/* 主要ボタン */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  min-height: 44px; padding: 0 18px;
-  border-radius: 10px; border: 1px solid transparent;
-  font-size: 15px; font-weight: 700; cursor: pointer;
-  transition: background .15s, border-color .15s;
-}
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-dk); }
-.btn-ghost { background: var(--surface); color: var(--text); border-color: var(--line); }
-.btn-ghost:hover { border-color: #b9c1cb; }
+  /* 主要ボタン */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 44px; padding: 0 18px;
+    border-radius: 10px; border: 1px solid transparent;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dk); }
+  .btn-ghost { background: var(--surface); color: var(--text); border-color: var(--line); }
+  .btn-ghost:hover { border-color: #b9c1cb; }
 
-/* 種別バッジ */
-.badge {
-  display: inline-flex; align-items: center;
-  height: 26px; padding: 0 10px; border-radius: 6px;
-  font-size: 12.5px; font-weight: 700; letter-spacing: .02em;
-}
-.badge-match  { background: var(--match-bg);  color: var(--match); }
-.badge-helper { background: var(--helper-bg); color: var(--helper); }
-.badge-gray   { background: #eef1f4; color: var(--text-sub); }
+  /* 種別バッジ */
+  .badge {
+    display: inline-flex; align-items: center;
+    height: 26px; padding: 0 10px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 700; letter-spacing: .02em;
+  }
+  .badge-match  { background: var(--match-bg);  color: var(--match); }
+  .badge-helper { background: var(--helper-bg); color: var(--helper); }
+  .badge-gray   { background: #eef1f4; color: var(--text-sub); }
 
-/* フォーム部品。iOS で拡大されないよう 16px */
-.field {
-  width: 100%; min-height: 46px; padding: 10px 12px;
-  border: 1px solid var(--line); border-radius: 10px;
-  background: var(--surface); color: var(--text);
-  font-size: 16px; line-height: 1.4; outline: none;
-  transition: border-color .15s, box-shadow .15s;
-}
-.field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(31,122,63,.18); }
-.label { display: block; font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-.hint  { font-size: 12.5px; color: var(--text-sub); margin-top: 6px; }
+  /* フォーム部品。iOS で拡大されないよう 16px */
+  .field {
+    width: 100%; min-height: 46px; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--surface); color: var(--text);
+    font-size: 16px; line-height: 1.4; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(31,122,63,.18); }
+  .label { display: block; font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .hint  { font-size: 12.5px; color: var(--text-sub); margin-top: 6px; }
 
-/* 横スクロール領域のバーは隠す（チップ列） */
-.no-bar { scrollbar-width: none; -ms-overflow-style: none; }
-.no-bar::-webkit-scrollbar { display: none; }
+  /* 横スクロール領域のバーは隠す（チップ列） */
+  .no-bar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-bar::-webkit-scrollbar { display: none; }
 
-/* 地図上のピン */
-.pin {
-  display: inline-flex; align-items: center; gap: 4px;
-  height: 30px; padding: 0 10px; border-radius: 999px;
-  background: var(--surface); color: var(--text);
-  border: 2px solid var(--line);
-  font-size: 13px; font-weight: 700; white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(16, 24, 40, .18);
-  cursor: pointer; transition: transform .15s;
-}
-.pin::after {
-  /* 下向きの小さな三角。会場の位置を指す */
-  content: ""; position: absolute; left: 50%; bottom: -7px;
-  width: 10px; height: 10px; transform: translateX(-50%) rotate(45deg);
-  background: inherit; border-right: 2px solid; border-bottom: 2px solid; border-color: inherit;
-  border-bottom-right-radius: 2px;
-}
-.pin-match  { border-color: var(--match);  color: var(--match); }
-.pin-helper { border-color: var(--helper); color: var(--helper); }
-.pin-active {
-  background: var(--primary); border-color: var(--primary); color: #fff;
-  transform: scale(1.08);
-}
+  /* 地図上のピン */
+  .pin {
+    display: inline-flex; align-items: center; gap: 4px;
+    height: 30px; padding: 0 10px; border-radius: 999px;
+    background: var(--surface); color: var(--text);
+    border: 2px solid var(--line);
+    font-size: 13px; font-weight: 700; white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(16, 24, 40, .18);
+    cursor: pointer; transition: transform .15s;
+  }
+  .pin::after {
+    /* 下向きの小さな三角。会場の位置を指す */
+    content: ""; position: absolute; left: 50%; bottom: -7px;
+    width: 10px; height: 10px; transform: translateX(-50%) rotate(45deg);
+    background: inherit; border-right: 2px solid; border-bottom: 2px solid; border-color: inherit;
+    border-bottom-right-radius: 2px;
+  }
+  .pin-match  { border-color: var(--match);  color: var(--match); }
+  .pin-helper { border-color: var(--helper); color: var(--helper); }
+  .pin-active {
+    background: var(--primary); border-color: var(--primary); color: #fff;
+    transform: scale(1.08);
+  }
 
-/* 横スクロールの右端をぼかす。PC では不要 */
-.scroll-hint { position: relative; }
-.scroll-hint::after {
-  content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 40px;
-  background: linear-gradient(90deg, rgba(255,255,255,0), var(--surface));
-  pointer-events: none;
-}
-@media (min-width: 768px) { .scroll-hint::after { display: none; } }
+  /* 横スクロールの右端をぼかす。PC では不要 */
+  .scroll-hint { position: relative; }
+  .scroll-hint::after {
+    content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 40px;
+    background: linear-gradient(90deg, rgba(255,255,255,0), var(--surface));
+    pointer-events: none;
+  }
+  @media (min-width: 768px) { .scroll-hint::after { display: none; } }
 
-/* 現在地の点 */
-.me {
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #1d6fe0; border: 3px solid #fff;
-  box-shadow: 0 0 0 2px rgba(29,111,224,.35), 0 2px 6px rgba(16,24,40,.3);
+  /* 現在地の点 */
+  .me {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #1d6fe0; border: 3px solid #fff;
+    box-shadow: 0 0 0 2px rgba(29,111,224,.35), 0 2px 6px rgba(16,24,40,.3);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -32,15 +32,19 @@ npm run dev                        # http://localhost:3000
 |---|---|
 | 画面 | Next.js 16 / React 19 / TypeScript / Tailwind |
 | 地図 | MapLibre GL + OpenFreeMap（鍵不要・無料） |
-| データ | いまは `src/lib/mock.ts` の仮データ。次段階で Supabase |
+| データ | `src/lib/store.ts`（localStorage）。初期値は `src/lib/mock.ts`。次段階で Supabase に差し替え |
 
 ```
 src/config/site.ts   サービス名・地図の初期位置・熊本県の範囲
 src/types/index.ts   型と表示ラベル
 src/lib/mock.ts      仮データ（熊本の実在会場8か所）
-src/components/      SearchMap / PostCard / Filters
-src/app/page.tsx     探す（地図＋カード連動）
+src/lib/store.ts     データ層。読み書きはここだけ（Supabase 移行時に中身を差し替える）
+src/components/      Header / BottomNav / SearchMap / VenueMap / PostCard / Filters / Stars / ApplicantRow
+src/app/page.tsx     探す（地図＋カード連動、距離絞り込み）
+src/app/post/        募集詳細（エントリー／承認）  ※ /post/?id=xxx
 src/app/post/new/    募集する
+src/app/me/          マイページ（チーム管理／自分のエントリー／評価）
+src/app/team/new/    チームを作る
 supabase/schema.sql  データベース定義
 scripts/copy-maplibre-worker.mjs  MapLibre の Worker を public/maplibre/ へ複製（dev/build 前に自動実行）
 ```

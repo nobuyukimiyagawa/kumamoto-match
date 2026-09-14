@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MAP_DEFAULT } from "@/config/site";
-import type { Post } from "@/types";
+import type { PostView as Post } from "@/lib/store";
 import { circlePolygon } from "@/lib/geo";
 
 /** OpenFreeMap の標準カラー地図。鍵も登録も要らず、費用もかからない。 */
