@@ -22,11 +22,12 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
-function selfUrl(req: Request, path: string) {
-  const u = new URL(req.url);
-  // /functions/v1/line-auth/... の形。関数名までを残して path を付け替える
-  const base = u.pathname.replace(/\/(start|callback)\/?$/, "");
-  return `${u.origin}${base}/${path}`;
+/**
+ * この関数自身の公開 URL。req.url は Supabase 内部の経路（http://…/line-auth/…）に
+ * なるため使わず、SUPABASE_URL から組み立てる。LINE に登録したコールバック URL と一致させる。
+ */
+function selfUrl(_req: Request, path: string) {
+  return `${SUPABASE_URL}/functions/v1/line-auth/${path}`;
 }
 
 function redirect(to: string, headers: Record<string, string> = {}) {
