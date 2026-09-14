@@ -28,10 +28,21 @@ export default function LoginPage() {
           )}
         </div>
         {!sid && (
-          <p className="mt-6 text-center text-[14px]">
-            初めての方は
-            <Link href="/signup/" className="ml-1 font-bold" style={{ color: "var(--primary)" }}>新規登録（無料）</Link>
-          </p>
+          <>
+            <p className="mt-6 text-center text-[14px]">
+              初めての方は
+              <Link href="/signup/" className="ml-1 font-bold" style={{ color: "var(--primary)" }}>新規登録（無料）</Link>
+            </p>
+            <details className="card mt-6 p-4 text-[14px]">
+              <summary className="cursor-pointer font-bold">ログインできないときは</summary>
+              <ul className="mt-3 flex list-disc flex-col gap-2 pl-5" style={{ color: "var(--text-sub)" }}>
+                <li>このサイトにパスワードはありません。「パスワードを忘れた」という状態は起こりません。</li>
+                <li>どの方法で登録したか忘れた場合は、上のメールアドレス欄に登録時のアドレスを入れてリンクを送ってください。Google や LINE で登録していても、同じアドレスなら同じアカウントに入れます。</li>
+                <li>メールが届かない場合は、迷惑メールフォルダを確認してください。数分待っても届かなければ、アドレスの打ち間違いの可能性があります。</li>
+                <li>LINE でログインしたのに「初めてのようです」と出る場合は、LINE にメールアドレスが登録されていないため別アカウントになっています。お手数ですが運営までご連絡ください。</li>
+              </ul>
+            </details>
+          </>
         )}
       </div>
       <BottomNav />
