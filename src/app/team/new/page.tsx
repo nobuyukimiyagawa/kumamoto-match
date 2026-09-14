@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { createTeam, useSessionId } from "@/lib/store";
 import { LEVEL_LABEL, type Level } from "@/types";
+import CityInput from "@/components/CityInput";
 
 export default function NewTeamPage() {
   const sid = useSessionId();
@@ -48,11 +49,7 @@ export default function NewTeamPage() {
               <label className="label" htmlFor="name">チーム名</label>
               <input id="name" className="field" value={name} onChange={(e) => setName(e.target.value)} required maxLength={40} />
             </div>
-            <div>
-              <label className="label" htmlFor="city">活動している市区町村</label>
-              <input id="city" className="field" value={city} onChange={(e) => setCity(e.target.value)} required placeholder="例: 熊本市東区" />
-              <p className="hint">番地は書かないでください。地図に出るのは会場だけです。</p>
-            </div>
+            <CityInput id="city" value={city} onChange={setCity} />
             <div>
               <label className="label" htmlFor="level">レベル帯</label>
               <select id="level" className="field" value={level} onChange={(e) => setLevel(e.target.value as Level)}>

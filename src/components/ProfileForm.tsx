@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { upsertProfile } from "@/lib/store";
+import CityInput from "@/components/CityInput";
 import { POSITION_LABEL, type Position, type Profile } from "@/types";
 
 const POSITIONS: Position[] = ["GK", "DF", "MF", "FW", "ANY"];
@@ -42,11 +43,7 @@ export default function ProfileForm({
         <input id="pf-name" className="field" value={name} onChange={(e) => setName(e.target.value)} required maxLength={30} placeholder="例: 田中 健太 / ケンタ" />
         <p className="hint">募集チームや対戦相手に見える名前です。本名でなくても構いません。</p>
       </div>
-      <div>
-        <label className="label" htmlFor="pf-city">活動している市区町村</label>
-        <input id="pf-city" className="field" value={city} onChange={(e) => setCity(e.target.value)} required placeholder="例: 熊本市東区" />
-        <p className="hint">番地は書かないでください。地図に出るのは会場だけです。</p>
-      </div>
+      <CityInput id="pf-city" value={city} onChange={setCity} />
       <fieldset>
         <legend className="label">ポジション（複数可）</legend>
         <div className="flex flex-wrap gap-2">
