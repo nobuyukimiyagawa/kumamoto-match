@@ -1,5 +1,12 @@
 # ログイン設定の手順（Google / LINE）
 
+> **2026-09-14 状況**: メール / Google / LINE の3方式とも本番で動作確認済み。
+> - Google: Google Cloud プロジェクト `pitchmate-508613`、OAuth クライアント `pitchmate-web`
+> - LINE: プロバイダー「ピッチメイト」、LINE ログインチャネル ID `2011602303`（公開済み）
+> - Edge Function `line-auth` はダッシュボードから配置（Verify JWT = OFF）、secrets 3件設定済み
+> - 未対応: LINE のメールアドレス取得権限（未申請）。このため LINE ユーザーは
+>   `line_<id>@line.pitchmate.invalid` の代替アドレスで別ユーザーになる
+
 方針: **見るだけならログイン不要。募集する・エントリーする・マイページはログイン必須。**
 ログイン手段は メールのリンク / Google / LINE の3つ。
 
