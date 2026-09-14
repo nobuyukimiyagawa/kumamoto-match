@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SITE } from "@/config/site";
-import { getProfile, setSession, teamsRunBy, useDB, useSessionId } from "@/lib/store";
+import { AUTH_MODE, getProfile, setSession, signOut, teamsRunBy, useDB, useSessionId } from "@/lib/store";
 
 /**
  * 共通ヘッダー。
- * ログイン機能はまだ無いので、右端の「アカウント」で誰として使うかを切り替える（デモ）。
+ * Supabase 接続時はログイン／ログアウト、キーが無いデモ時は「アカウント」切替を出す。
  */
 export default function Header({ subtitle }: { subtitle?: string }) {
   const db = useDB();
@@ -51,27 +51,42 @@ export default function Header({ subtitle }: { subtitle?: string }) {
       </nav>
 
       <div className="ml-auto flex items-center gap-2">
-        {/* デモ用アカウント切替。ログイン実装後はこの select がプロフィールメニューになる */}
-        <label className="flex items-center gap-1 text-[12.5px]" style={{ color: "var(--text-sub)" }}>
-          <span className="hidden sm:inline">アカウント</span>
-          <select
-            className="field"
-            style={{ minHeight: 40, padding: "0 6px", fontSize: 14, width: "auto", maxWidth: "min(170px, 42vw)" }}
-            value={sid ?? ""}
-            onChange={(e) => setSession(e.target.value || null)}
-            aria-label="使うアカウント（デモ）"
-          >
-            <option value="">未ログイン</option>
-            {db.profiles.map((p) => {
-              const teams = teamsRunBy(db, p.id);
-              return (
-                <option key={p.id} value={p.id}>
-                  {p.displayName}{teams.length ? `（${teams[0].name}${teams.length > 1 ? " ほか" : ""}）` : "（個人）"}
-                </option>
-              );
-            })}
-          </select>
-        </label>
+        {AUTH_MODE === "local" ? (
+          // デモ用アカウント切替
+          <label className="flex items-center gap-1 text-[12.5px]" style={{ color: "var(--text-sub)" }}>
+            <span className="hidden sm:inline">アカウント</span>
+            <select
+              className="field"
+              style={{ minHeight: 40, padding: "0 6px", fontSize: 14, width: "auto", maxWidth: "min(170px, 42vw)" }}
+              value={sid ?? ""}
+              onChange={(e) => setSession(e.target.value || null)}
+              aria-label="使うアカウント（デモ）"
+            >
+              <option value="">未ログイン</option>
+              {db.profiles.map((p) => {
+                const teams = teamsRunBy(db, p.id);
+                return (
+                  <option key={p.id} value={p.id}>
+                    {p.displayName}{teams.length ? `（${teams[0].name}${teams.length > 1 ? " ほか" : ""}）` : "（個人）"}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+        ) : sid ? (
+          <>
+            <Link href="/me/" className="max-w-[40vw] truncate text-[14px] font-bold sm:max-w-none" style={{ color: "var(--text)" }}>
+              {me?.displayName ?? "プロフィール未登録"}
+            </Link>
+            <button type="button" className="btn btn-ghost" style={{ minHeight: 40, padding: "0 12px", fontSize: 13.5 }} onClick={() => signOut()}>
+              ログアウト
+            </button>
+          </>
+        ) : (
+          <Link href="/login/" className="btn btn-ghost" style={{ minHeight: 40, padding: "0 14px" }}>
+            ログイン
+          </Link>
+        )}
         {myTeams.length > 0 && (
           <Link href="/post/new/" className="btn btn-primary hidden shrink-0 sm:inline-flex" style={{ minHeight: 40, padding: "0 14px" }}>
             ＋ 募集する

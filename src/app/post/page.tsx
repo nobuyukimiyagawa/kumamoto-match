@@ -31,7 +31,7 @@ function Detail() {
   const sid = useSessionId();
   const post = getPost(db, id);
 
-  if (db.posts.length === 0) return null; // クライアントでデータが入るまで待つ
+  if (!db.ready) return <main className="min-h-dvh"><Header /></main>;
   if (!post) {
     return (
       <main className="min-h-dvh">
@@ -152,14 +152,14 @@ function EntryPanel({
 }) {
   const [msg, setMsg] = useState("");
   const [teamId, setTeamId] = useState(myTeams[0]?.id ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!meId) {
     return (
       <div className="card mt-3 p-5 text-center">
         <p className="text-[15px] font-bold">エントリーするにはログインが必要です</p>
-        <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
-          いまはデモ中です。右上の「アカウント」から誰として使うかを選んでください。
-        </p>
+        <Link href="/login/" className="btn btn-primary mt-4">ログイン・新規登録</Link>
       </div>
     );
   }
@@ -209,13 +209,16 @@ function EntryPanel({
   return (
     <form
       className="card mt-3 p-5"
-      onSubmit={(e) => {
-        e.preventDefault();
-        apply({
-          postId,
-          message: msg.trim() || undefined,
-          ...(helper ? { applicantProfileId: meId } : { applicantTeamId: teamId }),
-        });
+      onSubmit={async (e) => {
+        e.preventDefault(); setBusy(true); setError(null);
+        try {
+          await apply({
+            postId,
+            message: msg.trim() || undefined,
+            ...(helper ? { applicantProfileId: meId } : { applicantTeamId: teamId }),
+          });
+        } catch (err) { setError("送信できませんでした。" + (err instanceof Error ? err.message : "")); }
+        finally { setBusy(false); }
       }}
     >
       <h2 className="text-[16px] font-bold">{helper ? "助っ人としてエントリーする" : "対戦のエントリーをする"}</h2>
@@ -237,8 +240,9 @@ function EntryPanel({
           placeholder={helper ? "入れるポジションや経験を一言。例: GKで入れます。社会人3年目です。" : "人数や希望する形式を一言。"}
         />
       </div>
-      <button type="submit" className="btn btn-primary mt-4 w-full" style={{ minHeight: 50, fontSize: 16 }}>
-        エントリーを送る
+      {error && <p className="mt-3 text-[14px] font-bold" style={{ color: "var(--danger)" }}>{error}</p>}
+      <button type="submit" className="btn btn-primary mt-4 w-full" disabled={busy} style={{ minHeight: 50, fontSize: 16, opacity: busy ? 0.6 : 1 }}>
+        {busy ? "送信中…" : "エントリーを送る"}
       </button>
       <p className="hint text-center">募集チームが承認すると「エントリー完了」になります。</p>
     </form>

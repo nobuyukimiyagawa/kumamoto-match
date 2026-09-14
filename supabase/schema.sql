@@ -126,9 +126,35 @@ create policy "read posts"  on posts  for select using (true);
 create policy "read venues" on venues for select using (true);
 create policy "read teams"  on teams  for select using (true);
 
--- 自分のプロフィールだけ書き換えられる
-create policy "own profile" on profiles for all
-  using (id = auth.uid()) with check (id = auth.uid());
+-- プロフィールは誰でも読める（エントリー者の名前・評価を募集主が見るため）。書けるのは本人だけ
+create policy "read profiles" on profiles for select using (true);
+create policy "own profile insert" on profiles for insert with check (id = auth.uid());
+create policy "own profile update" on profiles for update using (id = auth.uid());
+
+-- 所属は誰でも読める（運営者判定に使う）。追加は本人（オーナー登録）かチームのオーナー
+create policy "read members" on team_members for select using (true);
+create policy "join as owner" on team_members for insert with check (
+  profile_id = auth.uid()
+  or exists (select 1 from teams t where t.id = team_members.team_id and t.owner_id = auth.uid())
+);
+
+-- チームは作った人がオーナー。更新はオーナー／管理者
+create policy "create team" on teams for insert with check (owner_id = auth.uid());
+create policy "update team" on teams for update using (
+  exists (select 1 from team_members m where m.team_id = teams.id
+          and m.profile_id = auth.uid() and m.role in ('owner','admin'))
+);
+
+-- チームを作ったら、作った人を owner として所属に入れる
+create or replace function add_owner_membership() returns trigger
+language plpgsql security definer as $$
+begin
+  insert into team_members (team_id, profile_id, role) values (new.id, new.owner_id, 'owner')
+  on conflict do nothing;
+  return new;
+end $$;
+create trigger teams_add_owner after insert on teams
+  for each row execute function add_owner_membership();
 
 -- 募集はチームのオーナー／管理者だけが作れる
 create policy "team can post" on posts for all using (
@@ -147,6 +173,12 @@ create policy "read own applications" on applications for select using (
 
 -- エントリーは本人（個人）か、運営チームの owner/admin が出せる
 create policy "apply as self" on applications for insert with check (
+  applicant_profile_id = auth.uid()
+  or exists (select 1 from team_members m where m.team_id = applications.applicant_team_id
+             and m.profile_id = auth.uid() and m.role in ('owner','admin'))
+);
+-- 取り消しは本人（個人）か、エントリーしたチームの owner/admin
+create policy "applicant cancels" on applications for update using (
   applicant_profile_id = auth.uid()
   or exists (select 1 from team_members m where m.team_id = applications.applicant_team_id
              and m.profile_id = auth.uid() and m.role in ('owner','admin'))

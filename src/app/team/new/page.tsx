@@ -15,6 +15,8 @@ export default function NewTeamPage() {
   const [city, setCity] = useState("");
   const [level, setLevel] = useState<Level>("casual");
   const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <main className="min-h-dvh pb-24 sm:pb-10">
@@ -27,15 +29,19 @@ export default function NewTeamPage() {
         </p>
         {!sid ? (
           <div className="card mt-5 p-5 text-center">
-            <p className="font-bold">先に右上の「アカウント」を選んでください</p>
+            <p className="font-bold">チームを作るにはログインが必要です</p>
+            <Link href="/login/" className="btn btn-primary mt-4">ログイン</Link>
           </div>
         ) : (
           <form
             className="card mt-5 flex flex-col gap-5 p-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              createTeam({ name: name.trim(), city: city.trim(), level, note: note.trim() || undefined, ownerId: sid });
-              router.push("/me/");
+            onSubmit={async (e) => {
+              e.preventDefault(); setBusy(true); setError(null);
+              try {
+                await createTeam({ name: name.trim(), city: city.trim(), level, note: note.trim() || undefined, ownerId: sid });
+                router.push("/me/");
+              } catch (err) { setError("作成できませんでした。" + (err instanceof Error ? err.message : "")); }
+              finally { setBusy(false); }
             }}
           >
             <div>
@@ -57,7 +63,10 @@ export default function NewTeamPage() {
               <label className="label" htmlFor="note">紹介（任意）</label>
               <textarea id="note" rows={3} className="field" value={note} onChange={(e) => setNote(e.target.value)} placeholder="活動日、年齢層、雰囲気など" />
             </div>
-            <button type="submit" className="btn btn-primary w-full" style={{ minHeight: 50, fontSize: 16 }}>チームを作る</button>
+            {error && <p className="text-[14px] font-bold" style={{ color: "var(--danger)" }}>{error}</p>}
+            <button type="submit" className="btn btn-primary w-full" disabled={busy} style={{ minHeight: 50, fontSize: 16, opacity: busy ? 0.6 : 1 }}>
+              {busy ? "作成中…" : "チームを作る"}
+            </button>
           </form>
         )}
       </div>

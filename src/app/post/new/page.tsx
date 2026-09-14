@@ -29,6 +29,7 @@ export default function NewPostPage() {
   const [fee, setFee] = useState(0);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const helper = kind === "helper";
 
   return (
@@ -41,9 +42,10 @@ export default function NewPostPage() {
           {SITE.area}内の会場が対象です。地図に出るのは会場だけで、個人の住所は表示しません。
         </p>
 
-        {!sid ? (
+        {!db.ready ? null : !sid ? (
           <div className="card mt-5 p-5 text-center">
-            <p className="font-bold">募集するには右上の「アカウント」を選んでください</p>
+            <p className="font-bold">募集するにはログインが必要です</p>
+            <Link href="/login/" className="btn btn-primary mt-4">ログイン</Link>
           </div>
         ) : myTeams.length === 0 ? (
           <div className="card mt-5 p-5 text-center">
@@ -54,17 +56,20 @@ export default function NewPostPage() {
         ) : (
           <form
             className="card mt-5 flex flex-col gap-5 p-5"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               if (helper && positions.length === 0) { setError("募集するポジションを1つ以上選んでください。"); return; }
               if (start >= end) { setError("終了時刻は開始時刻より後にしてください。"); return; }
-              const post = createPost({
-                kind, teamId: teamId || myTeams[0].id, venueId: venueId || db.venues[0].id,
-                date, startTime: start, endTime: end, level, fee,
-                ...(helper ? { positions, needed } : {}),
-                body: body.trim(),
-              });
-              router.push(`/post/?id=${post.id}`);
+              setBusy(true); setError(null);
+              try {
+                const post = await createPost({
+                  kind, teamId: teamId || myTeams[0].id, venueId: venueId || db.venues[0].id,
+                  date, startTime: start, endTime: end, level, fee,
+                  ...(helper ? { positions, needed } : {}),
+                  body: body.trim(),
+                });
+                router.push(`/post/?id=${post.id}`);
+              } catch (err) { setError("保存できませんでした。" + (err instanceof Error ? err.message : "")); setBusy(false); }
             }}
           >
             <fieldset>
@@ -165,8 +170,8 @@ export default function NewPostPage() {
 
             {error && <p className="text-[14px] font-bold" style={{ color: "var(--danger)" }}>{error}</p>}
 
-            <button type="submit" className="btn btn-primary w-full" style={{ minHeight: 50, fontSize: 16 }}>
-              この内容で募集する
+            <button type="submit" className="btn btn-primary w-full" disabled={busy} style={{ minHeight: 50, fontSize: 16, opacity: busy ? 0.6 : 1 }}>
+              {busy ? "保存中…" : "この内容で募集する"}
             </button>
           </form>
         )}

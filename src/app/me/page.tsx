@@ -7,8 +7,9 @@ import BottomNav from "@/components/BottomNav";
 import ApplicantRow from "@/components/ApplicantRow";
 import { fmtDate } from "@/components/PostCard";
 import { StarInput, Stars } from "@/components/Stars";
+import ProfileForm from "@/components/ProfileForm";
 import {
-  addRating, applicationsForPost, cancelApplication, closePost, getPost, getProfile, isPast,
+  AUTH_MODE, addRating, applicationsForPost, cancelApplication, closePost, getPost, getProfile, isPast,
   listPosts, pendingRatingsFor, ratingSummary, resetDB, teamsRunBy, useDB, useSessionId,
   type PendingRating, type PostView,
 } from "@/lib/store";
@@ -23,18 +24,40 @@ export default function MyPage() {
   const myTeams = sid ? teamsRunBy(db, sid) : [];
   const runsTeam = myTeams.length > 0;
   const [tab, setTab] = useState<Tab | null>(null);
+  const [editing, setEditing] = useState(false);
 
-  if (db.posts.length === 0) return <main className="min-h-dvh"><Header /></main>;
+  if (!db.ready) return <main className="min-h-dvh"><Header /></main>;
 
-  if (!me) {
+  if (!sid) {
     return (
       <main className="min-h-dvh pb-24 sm:pb-10">
         <Header />
         <div className="mx-auto max-w-2xl px-4 pt-8 text-center">
           <p className="text-[16px] font-bold">マイページを見るにはログインが必要です</p>
-          <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
-            いまはデモ中です。右上の「アカウント」から誰として使うかを選んでください。
+          {AUTH_MODE === "local" ? (
+            <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
+              いまはデモ中です。右上の「アカウント」から誰として使うかを選んでください。
+            </p>
+          ) : (
+            <Link href="/login/" className="btn btn-primary mt-4">ログイン・新規登録</Link>
+          )}
+        </div>
+        <BottomNav />
+      </main>
+    );
+  }
+
+  // ログインはしているがプロフィールが無い（初回）→ 登録してもらう
+  if (!me) {
+    return (
+      <main className="min-h-dvh pb-24 sm:pb-10">
+        <Header />
+        <div className="mx-auto max-w-2xl px-4 pt-6">
+          <h1 className="text-[22px] font-bold">はじめまして</h1>
+          <p className="mt-1 mb-4 text-[14px]" style={{ color: "var(--text-sub)" }}>
+            最初にプロフィールを登録してください。募集チームや対戦相手に見える情報です。
           </p>
+          <ProfileForm id={sid} onDone={() => {}} />
         </div>
         <BottomNav />
       </main>
@@ -73,6 +96,9 @@ export default function MyPage() {
       <Header />
       <div className="mx-auto max-w-3xl px-4 pt-4">
         {/* 自分のプロフィール */}
+        {editing ? (
+          <ProfileForm id={me.id} initial={me} onDone={() => setEditing(false)} onCancel={() => setEditing(false)} />
+        ) : (
         <div className="card flex flex-wrap items-center gap-x-4 gap-y-2 p-4">
           <div>
             <p className="text-[18px] font-bold">{me.displayName}</p>
@@ -89,17 +115,22 @@ export default function MyPage() {
             {myTeams.map((t) => {
               const r = ratingSummary(db, { kind: "team", id: t.id });
               return (
-                <span key={t.id} className="badge badge-match" title="運営しているチーム">
+                <Link key={t.id} href={`/team/edit/?id=${t.id}`} className="badge badge-match" title="チームを編集">
                   {t.name}
                   <span className="ml-1.5"><Stars value={r.avg} count={r.count} size={12} showNumber={false} /></span>
-                </span>
+                  <span className="ml-1.5" aria-hidden>✎</span>
+                </Link>
               );
             })}
+            <button type="button" className="btn btn-ghost" style={{ minHeight: 36, padding: "0 12px", fontSize: 13.5 }} onClick={() => setEditing(true)}>
+              プロフィールを編集
+            </button>
             <Link href="/team/new/" className="btn btn-ghost" style={{ minHeight: 36, padding: "0 12px", fontSize: 13.5 }}>
               ＋ チームを作る
             </Link>
           </div>
         </div>
+        )}
 
         {/* タブ */}
         <div className="no-bar mt-4 flex gap-2 overflow-x-auto" role="tablist">
@@ -128,12 +159,14 @@ export default function MyPage() {
         {current === "me" && <MyEntriesPanel items={myApps} />}
         {current === "rate" && <RatePanel items={pendingRatings} />}
 
-        <p className="mt-10 text-center text-[12.5px]" style={{ color: "var(--text-sub)" }}>
-          デモ中のデータはこのブラウザにだけ保存されています。
-          <button type="button" className="ml-2 underline" onClick={() => { if (confirm("仮データに戻します。よろしいですか？")) resetDB(); }}>
-            仮データに戻す
-          </button>
-        </p>
+        {AUTH_MODE === "local" && (
+          <p className="mt-10 text-center text-[12.5px]" style={{ color: "var(--text-sub)" }}>
+            デモ中のデータはこのブラウザにだけ保存されています。
+            <button type="button" className="ml-2 underline" onClick={() => { if (confirm("仮データに戻します。よろしいですか？")) resetDB(); }}>
+              仮データに戻す
+            </button>
+          </p>
+        )}
       </div>
       <BottomNav />
     </main>

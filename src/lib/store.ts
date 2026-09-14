@@ -1,129 +1,72 @@
 "use client";
 
 /**
- * データ層。いまはブラウザ内（localStorage）で完結する。
- * Supabase に移すときは、このファイルの関数の中身だけを差し替える。
- * 画面側は useDB() と mutate 系の関数だけを使い、localStorage を直接触らない。
+ * データ層の入口。画面はここだけを使う。
+ * Supabase のキーがあれば Supabase、無ければ localStorage のデモ用に切り替わる。
  */
 
 import { useSyncExternalStore } from "react";
-import type {
-  Application, ApplicationStatus, Level, Post, PostKind, Position, Profile, Rating, RatingTarget,
-  Team, TeamMember, Venue,
-} from "@/types";
-import { APPLICATIONS, MEMBERS, POSTS, PROFILES, RATINGS, TEAMS, VENUES } from "./mock";
+import type { Application, Post, RatingTarget, Team } from "@/types";
+import { EMPTY_DB, type Backend, type DB } from "./backend";
+import { localBackend } from "./backend.local";
+import { hasSupabase, supabaseBackend } from "./backend.supabase";
 
-const KEY = "pitchmate-db-v1";
-const SESSION_KEY = "pitchmate-session-v1";
+export type { DB } from "./backend";
 
-export type DB = {
-  venues: Venue[];
-  profiles: Profile[];
-  teams: Team[];
-  members: TeamMember[];
-  posts: Post[];
-  applications: Application[];
-  ratings: Rating[];
-};
+const backend: Backend = hasSupabase ? supabaseBackend : localBackend;
+
+/** ログイン方式。画面の出し分けに使う */
+export const AUTH_MODE = backend.mode;
 
 /** 画面で使う、参照を解決した募集 */
-export type PostView = Post & { team: Team; venue: Venue };
+export type PostView = Post & { team: Team; venue: import("@/types").Venue };
 
-// ---------- 読み書きの土台 ----------
+// ---------- 購読 ----------
 
-let cache: DB | null = null;
-const listeners = new Set<() => void>();
-
-function seed(): DB {
-  return {
-    venues: VENUES, profiles: PROFILES, teams: TEAMS, members: MEMBERS,
-    posts: POSTS, applications: APPLICATIONS, ratings: RATINGS,
-  };
-}
-
-function read(): DB {
-  if (cache) return cache;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) { cache = JSON.parse(raw) as DB; return cache; }
-  } catch { /* 壊れていたら初期値に戻す */ }
-  cache = seed();
-  return cache;
-}
-
-function write(next: DB) {
-  cache = next;
-  try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* 容量超過などは無視 */ }
-  listeners.forEach((l) => l());
-}
-
-function subscribe(l: () => void) {
-  listeners.add(l);
-  return () => { listeners.delete(l); };
-}
-
-const EMPTY: DB = { venues: [], profiles: [], teams: [], members: [], posts: [], applications: [], ratings: [] };
-
-/** 画面から呼ぶ。サーバー描画中は空、クライアントでは現在のデータ */
 export function useDB(): DB {
-  return useSyncExternalStore(subscribe, read, () => EMPTY);
+  return useSyncExternalStore(backend.subscribeDB, backend.getDB, () => EMPTY_DB);
 }
-
-/** 仮データに戻す（デモ用） */
-export function resetDB() {
-  write(seed());
-}
-
-const uid = () => Math.random().toString(36).slice(2, 10);
-const today = () => {
-  const t = new Date();
-  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
-};
-
-// ---------- セッション（ログインの代わり） ----------
-
-function readSession(): string | null {
-  try { return localStorage.getItem(SESSION_KEY); } catch { return null; }
-}
-const sessionListeners = new Set<() => void>();
 export function useSessionId(): string | null {
-  return useSyncExternalStore(
-    (l) => { sessionListeners.add(l); return () => { sessionListeners.delete(l); }; },
-    readSession,
-    () => null,
-  );
-}
-export function setSession(profileId: string | null) {
-  try {
-    if (profileId) localStorage.setItem(SESSION_KEY, profileId);
-    else localStorage.removeItem(SESSION_KEY);
-  } catch { /* ignore */ }
-  sessionListeners.forEach((l) => l());
+  return useSyncExternalStore(backend.subscribeSession, backend.getSessionId, () => null);
 }
 
-// ---------- 参照 ----------
+// ---------- 認証 ----------
+
+export function setSession(profileId: string | null) { backend.setSession?.(profileId); }
+export function signInWithEmail(email: string) {
+  return backend.signInWithEmail ? backend.signInWithEmail(email) : Promise.resolve({ error: "このモードではメールログインは使えません" });
+}
+export function signOut() { return backend.signOut(); }
+export function resetDB() { backend.reset?.(); }
+
+// ---------- 更新（すべて Promise） ----------
+
+export const upsertProfile = backend.upsertProfile.bind(backend);
+export const createTeam = backend.createTeam.bind(backend);
+export const updateTeam = backend.updateTeam.bind(backend);
+export const createPost = backend.createPost.bind(backend);
+export const closePost = backend.closePost.bind(backend);
+export const apply = backend.apply.bind(backend);
+export const cancelApplication = backend.cancelApplication.bind(backend);
+export const decide = backend.decide.bind(backend);
+export const addRating = backend.addRating.bind(backend);
+
+// ---------- 参照（純粋関数。どちらのバックエンドでも同じ） ----------
 
 export function toView(db: DB, p: Post): PostView | null {
   const team = db.teams.find((t) => t.id === p.teamId);
   const venue = db.venues.find((v) => v.id === p.venueId);
   return team && venue ? { ...p, team, venue } : null;
 }
-
 export function listPosts(db: DB): PostView[] {
   return db.posts.map((p) => toView(db, p)).filter((x): x is PostView => !!x);
 }
-
 export function getPost(db: DB, id: string): PostView | null {
   const p = db.posts.find((x) => x.id === id);
   return p ? toView(db, p) : null;
 }
-
-export function getProfile(db: DB, id: string) {
-  return db.profiles.find((p) => p.id === id) ?? null;
-}
-export function getTeam(db: DB, id: string) {
-  return db.teams.find((t) => t.id === id) ?? null;
-}
+export function getProfile(db: DB, id: string) { return db.profiles.find((p) => p.id === id) ?? null; }
+export function getTeam(db: DB, id: string) { return db.teams.find((t) => t.id === id) ?? null; }
 
 /** その人が運営（owner/admin）しているチーム */
 export function teamsRunBy(db: DB, profileId: string): Team[] {
@@ -132,11 +75,9 @@ export function teamsRunBy(db: DB, profileId: string): Team[] {
     .map((m) => m.teamId);
   return db.teams.filter((t) => ids.includes(t.id));
 }
-
 export function applicationsForPost(db: DB, postId: string): Application[] {
   return db.applications.filter((a) => a.postId === postId && a.status !== "cancelled");
 }
-
 /** 募集に対する、この人（または運営チーム）のエントリー */
 export function myApplication(db: DB, postId: string, profileId: string): Application | null {
   const teamIds = teamsRunBy(db, profileId).map((t) => t.id);
@@ -147,19 +88,16 @@ export function myApplication(db: DB, postId: string, profileId: string): Applic
     ) ?? null
   );
 }
-
 export function applicantName(db: DB, a: Application): string {
   if (a.applicantTeamId) return getTeam(db, a.applicantTeamId)?.name ?? "不明なチーム";
   if (a.applicantProfileId) return getProfile(db, a.applicantProfileId)?.displayName ?? "不明なユーザー";
   return "不明";
 }
-
 export function applicantTarget(a: Application): RatingTarget {
   return a.applicantTeamId
     ? { kind: "team", id: a.applicantTeamId }
     : { kind: "profile", id: a.applicantProfileId! };
 }
-
 /** 評価のまとめ。平均と件数と、新しい順のコメント */
 export function ratingSummary(db: DB, target: RatingTarget) {
   const rs = db.ratings.filter((r) => r.to.kind === target.kind && r.to.id === target.id);
@@ -168,9 +106,10 @@ export function ratingSummary(db: DB, target: RatingTarget) {
   const recent = [...rs].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
   return { avg, count, recent };
 }
-
 export function isPast(p: Post) {
-  return p.date < today();
+  const t = new Date();
+  const today = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+  return p.date < today;
 }
 
 /**
@@ -179,11 +118,7 @@ export function isPast(p: Post) {
  * 募集主チーム → エントリー者、エントリー者 → 募集主チーム の両方向。
  */
 export type PendingRating = {
-  post: PostView;
-  application: Application;
-  from: RatingTarget;
-  to: RatingTarget;
-  toName: string;
+  post: PostView; application: Application; from: RatingTarget; to: RatingTarget; toName: string;
 };
 export function pendingRatingsFor(db: DB, profileId: string): PendingRating[] {
   const myTeams = teamsRunBy(db, profileId).map((t) => t.id);
@@ -198,82 +133,13 @@ export function pendingRatingsFor(db: DB, profileId: string): PendingRating[] {
     if (!post || !isPast(post)) continue;
     const host: RatingTarget = { kind: "team", id: post.teamId };
     const guest = applicantTarget(a);
-
-    // 自分が募集主チームの運営なら、エントリー者を評価できる
     if (myTeams.includes(post.teamId) && !done(host, guest, a.id)) {
       out.push({ post, application: a, from: host, to: guest, toName: applicantName(db, a) });
     }
-    // 自分がエントリー者（本人 or 運営チーム）なら、募集主チームを評価できる
     const iAmGuest = guest.kind === "profile" ? guest.id === profileId : myTeams.includes(guest.id);
     if (iAmGuest && !done(guest, host, a.id)) {
       out.push({ post, application: a, from: guest, to: host, toName: post.team.name });
     }
   }
   return out.sort((x, y) => y.post.date.localeCompare(x.post.date));
-}
-
-// ---------- 更新 ----------
-
-export function createTeam(input: { name: string; city: string; level: Level; note?: string; ownerId: string }) {
-  const db = read();
-  const team: Team = { id: "t" + uid(), ...input };
-  write({
-    ...db,
-    teams: [...db.teams, team],
-    members: [...db.members, { teamId: team.id, profileId: input.ownerId, role: "owner" }],
-  });
-  return team;
-}
-
-export function createPost(input: {
-  kind: PostKind; teamId: string; venueId: string; date: string; startTime: string; endTime: string;
-  level: Level; positions?: Position[]; needed?: number; fee?: number; body: string;
-}) {
-  const db = read();
-  const post: Post = { id: "p" + uid(), status: "open", createdAt: today(), ...input };
-  write({ ...db, posts: [post, ...db.posts] });
-  return post;
-}
-
-export function closePost(postId: string) {
-  const db = read();
-  write({ ...db, posts: db.posts.map((p) => (p.id === postId ? { ...p, status: "closed" } : p)) });
-}
-
-export function apply(input: { postId: string; applicantTeamId?: string; applicantProfileId?: string; message?: string }) {
-  const db = read();
-  const a: Application = { id: "a" + uid(), status: "pending", createdAt: today(), ...input };
-  write({ ...db, applications: [...db.applications, a] });
-  return a;
-}
-
-export function cancelApplication(id: string) {
-  const db = read();
-  write({ ...db, applications: db.applications.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a)) });
-}
-
-/** 募集主が承認 or 見送り。承認で「エントリー完了」。助っ人は人数が揃ったら成立にする */
-export function decide(id: string, status: Extract<ApplicationStatus, "approved" | "rejected">) {
-  const db = read();
-  const apps = db.applications.map((a) => (a.id === id ? { ...a, status, decidedAt: today() } : a));
-  const target = apps.find((a) => a.id === id);
-  let posts = db.posts;
-  if (target && status === "approved") {
-    const post = db.posts.find((p) => p.id === target.postId);
-    if (post) {
-      const approved = apps.filter((a) => a.postId === post.id && a.status === "approved").length;
-      const filled = post.kind === "training_match" ? approved >= 1 : approved >= (post.needed ?? 1);
-      if (filled) posts = db.posts.map((p) => (p.id === post.id ? { ...p, status: "filled" } : p));
-    }
-  }
-  write({ ...db, applications: apps, posts });
-}
-
-export function addRating(input: {
-  postId: string; applicationId: string; from: RatingTarget; to: RatingTarget; stars: 1 | 2 | 3 | 4 | 5; comment?: string;
-}) {
-  const db = read();
-  const r: Rating = { id: "r" + uid(), createdAt: today(), ...input };
-  write({ ...db, ratings: [...db.ratings, r] });
-  return r;
 }
