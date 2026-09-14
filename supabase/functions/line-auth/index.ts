@@ -116,36 +116,38 @@ Deno.serve(async (req) => {
     if (!verifyRes.ok) return backWithError(ret, "verify_failed");
     const claims = await verifyRes.json() as { sub: string; name?: string; picture?: string; email?: string };
 
-    // 3) Supabase のユーザーを用意する。LINE の userId をキーに探し、無ければ作る
-    //    メールが取れない場合は LINE の ID から作った代替アドレスを使う（本人には見せない）
+    // 3) Supabase のユーザーを用意する。LINE の userId をキーに探し、無ければ作る。
+    //    メールが取れない場合は LINE の ID から作った代替アドレスを使う（本人には見せない）。
+    //    見つかった／統合したユーザーの実際のメール（loginEmail）でリンクを発行するのが要点。
+    //    代替アドレスで発行すると、そのアドレスの別ユーザーが作られてしまう。
     const email = claims.email ?? `line_${claims.sub}@line.pitchmate.invalid`;
-    let userId: string | null = null;
+    let loginEmail: string | null = null;
     {
       // LINE ID で既存ユーザーを探す（app_metadata.line_sub）
       const { data } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
       const found = data?.users.find((u) => (u.app_metadata as Record<string, unknown>)?.line_sub === claims.sub);
-      if (found) userId = found.id;
+      if (found?.email) loginEmail = found.email;
     }
-    if (!userId) {
+    if (!loginEmail) {
       const { data, error } = await admin.auth.admin.createUser({
         email, email_confirm: true,
         user_metadata: { name: claims.name, avatar_url: claims.picture, provider: "line" },
         app_metadata: { line_sub: claims.sub },
       });
       if (error) {
-        // 同じメールが既にあれば、その人に LINE を紐づける
+        // 同じメールが既にあれば（Google やメールリンクで登録済み）、その人に LINE を紐づける
         const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
         const same = list?.users.find((u) => u.email === email);
-        if (!same) return backWithError(ret, "create_user_failed");
+        if (!same?.email) return backWithError(ret, "create_user_failed");
         await admin.auth.admin.updateUserById(same.id, { app_metadata: { ...same.app_metadata, line_sub: claims.sub } });
-        userId = same.id;
+        loginEmail = same.email;
       } else {
-        userId = data.user.id;
+        loginEmail = data.user.email ?? email;
       }
     }
 
     // 4) マジックリンクの token_hash を作り、サイトへ渡す（メールは送らない）
-    const { data: link, error: linkErr } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+    const { data: link, error: linkErr } = await admin.auth.admin.generateLink({ type: "magiclink", email: loginEmail });
     if (linkErr || !link?.properties?.hashed_token) return backWithError(ret, "link_failed");
 
     // token_hash はクエリでなくフラグメント（#）で渡す。サーバーログや Referer に残らない
