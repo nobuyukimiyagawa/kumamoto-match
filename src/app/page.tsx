@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import SearchMap from "@/components/SearchMap";
 import PostCard from "@/components/PostCard";
+import PostSheet from "@/components/PostSheet";
 import Filters, { defaultFilter, type FilterState } from "@/components/Filters";
 import { fmtDateJa } from "@/components/Calendar";
 import { SITE } from "@/config/site";
@@ -17,6 +18,8 @@ export default function SearchPage() {
   const db = useDB();
   const [filter, setFilter] = useState<FilterState>(defaultFilter);
   const [activeId, setActiveId] = useState<string | null>(null);
+  // 地図のピンを押したときだけ、下からカードを出す
+  const [sheetOpen, setSheetOpen] = useState(false);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // 現在地。距離で絞るときと、地図の現在地ボタンを押したときだけ入る
   const [origin, setOrigin] = useState<LatLng | null>(null);
@@ -91,6 +94,7 @@ export default function SearchPage() {
   const changeFilter = useCallback((v: FilterState) => {
     setFilter(v);
     setActiveId(null);
+    setSheetOpen(false);
     if (v.radiusKm && !origin) locate();
     if (!v.radiusKm) setLocError(null);
   }, [origin, locate]);
@@ -98,11 +102,24 @@ export default function SearchPage() {
   // 地図の現在地ボタンで取れた位置も、距離の基準に使う
   const onLocate = useCallback((p: LatLng) => { setOrigin(p); setLocError(null); }, []);
 
-  // ピンを押したら、そのカードまでリストを送る
+  // ピンを押したら、そのカードを下から出し、リストも送っておく
   const selectFromMap = useCallback((id: string) => {
     setActiveId(id);
+    setSheetOpen(true);
     cardRefs.current[id]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, []);
+  const activeIndex = posts.findIndex((p) => p.id === activeId);
+  const activePost = activeIndex >= 0 ? posts[activeIndex] : null;
+  const step = useCallback((d: 1 | -1) => {
+    if (posts.length === 0) return;
+    const i = posts.findIndex((p) => p.id === activeId);
+    const next = posts[(i + d + posts.length) % posts.length];
+    setActiveId(next.id);
+    cardRefs.current[next.id]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [posts, activeId]);
+  const closeSheet = useCallback(() => setSheetOpen(false), []);
+  const prev = useCallback(() => step(-1), [step]);
+  const next = useCallback(() => step(1), [step]);
 
   return (
     <main className="flex h-dvh flex-col">
@@ -194,6 +211,16 @@ export default function SearchPage() {
         </section>
       </div>
       <BottomNav />
+      <PostSheet
+        open={sheetOpen && !!activePost}
+        post={activePost}
+        index={Math.max(0, activeIndex)}
+        total={posts.length}
+        onClose={closeSheet} onPrev={prev} onNext={next}
+        distanceKm={activePost && origin ? distanceKm(origin, activePost.venue) : null}
+        rating={activePost ? ratingSummary(db, { kind: "team", id: activePost.teamId }) : { avg: 0, count: 0 }}
+        entries={activePost ? applicationsForPost(db, activePost.id).filter((a) => a.status !== "rejected").length : 0}
+      />
     </main>
   );
 }
