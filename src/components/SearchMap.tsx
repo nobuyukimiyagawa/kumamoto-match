@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MAP_DEFAULT } from "@/config/site";
 import type { PostView as Post } from "@/lib/store";
 import { circlePolygon } from "@/lib/geo";
 
-/** OpenFreeMap の標準カラー地図。鍵も登録も要らず、費用もかからない。 */
-const STYLE = "https://tiles.openfreemap.org/styles/liberty";
+/** OpenFreeMap の黒地図。鍵も登録も要らず、費用もかからない。 */
+const STYLE = "https://tiles.openfreemap.org/styles/dark";
 
 /**
  * Worker の場所を明示する。
@@ -67,6 +67,14 @@ export default function SearchMap({
   const styleReady = useRef(false);
   const onLocateRef = useRef(onLocate);
   useEffect(() => { onLocateRef.current = onLocate; }, [onLocate]);
+  // 掃引の中心（画面上の座標）。現在地があればそこ、無ければ画面の中心
+  const radar = useRef<HTMLDivElement>(null);
+  const originRef = useRef<LatLng | null>(origin);
+  useEffect(() => { originRef.current = origin; }, [origin]);
+  // 隅の計器に出す値
+  const [center, setCenter] = useState<{ lat: number; lng: number; zoom: number }>({
+    lat: MAP_DEFAULT.center.lat, lng: MAP_DEFAULT.center.lng, zoom: MAP_DEFAULT.zoom,
+  });
 
   // 地図はいちど作ったら使い回す
   useEffect(() => {
@@ -88,17 +96,36 @@ export default function SearchMap({
       onLocateRef.current?.({ lat: e.coords.latitude, lng: e.coords.longitude });
     });
     m.addControl(geo, "top-right");
+    // 掃引の中心を地図の動きに合わせる
+    const placeRadar = () => {
+      const el = radar.current;
+      if (!el) return;
+      const o = originRef.current;
+      if (o) {
+        const p = m.project([o.lng, o.lat]);
+        el.style.setProperty("--cx", `${p.x}px`);
+        el.style.setProperty("--cy", `${p.y}px`);
+      } else {
+        el.style.setProperty("--cx", "50%");
+        el.style.setProperty("--cy", "50%");
+      }
+      const c = m.getCenter();
+      setCenter({ lat: c.lat, lng: c.lng, zoom: m.getZoom() });
+    };
+    m.on("move", placeRadar);
+    m.on("resize", placeRadar);
     m.on("load", () => {
       applyJapaneseLabels(m);
+      placeRadar();
       // 距離の円。中身は後から差し替える
       m.addSource(RADIUS_SRC, { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       m.addLayer({
         id: "radius-fill", type: "fill", source: RADIUS_SRC,
-        paint: { "fill-color": "#1f7a3f", "fill-opacity": 0.08 },
+        paint: { "fill-color": "#5df08a", "fill-opacity": 0.06 },
       });
       m.addLayer({
         id: "radius-line", type: "line", source: RADIUS_SRC,
-        paint: { "line-color": "#1f7a3f", "line-width": 2, "line-dasharray": [2, 2] },
+        paint: { "line-color": "#5df08a", "line-width": 1.5, "line-dasharray": [3, 3] },
       });
       styleReady.current = true;
     });
@@ -167,6 +194,8 @@ export default function SearchMap({
     // 初期化の load ハンドラ（ソース追加）が先に登録されているので、この once はその後に走る
     if (styleReady.current) draw();
     else m.once("load", draw);
+    // 掃引の中心を現在地へ
+    m.fire("move");
   }, [origin, radiusKm]);
 
   // 選択が変わったらピンの見た目だけ差し替え、会場が画面外なら寄せる
@@ -188,5 +217,28 @@ export default function SearchMap({
     }
   }, [activeId, posts]);
 
-  return <div ref={holder} className="h-full w-full" aria-label="募集の会場地図" />;
+  const helpers = posts.filter((p) => p.kind === "helper").length;
+  return (
+    <div className="relative h-full w-full" aria-label="募集の会場地図">
+      <div ref={holder} className="h-full w-full" />
+      {/* レーダーの飾り。すべて pointer-events: none */}
+      <div ref={radar} className="radar radar-frame" aria-hidden>
+        <div className="radar-vignette" />
+        <div className="radar-cross" />
+        <div className="radar-rings"><i /><i /><i /><i /></div>
+        <div className="radar-sweep" />
+        <i className="tl" /><i className="br" />
+      </div>
+      {/* 隅の計器。件数と中心座標 */}
+      <div className="readout left-2 top-2 hidden sm:block" aria-hidden>
+        <span className="blink" style={{ width: 6, height: 6, marginRight: 6, verticalAlign: "middle" }} />
+        scan <b>{posts.length.toString().padStart(2, "0")}</b> targets
+        <span className="ml-2">trm <b>{(posts.length - helpers).toString().padStart(2, "0")}</b></span>
+        <span className="ml-2">hlp <b>{helpers.toString().padStart(2, "0")}</b></span>
+        {radiusKm > 0 && <span className="ml-2">rng <b>{radiusKm}km</b></span>}
+        <br />
+        <b>{center.lat.toFixed(4)}N {center.lng.toFixed(4)}E</b> z{center.zoom.toFixed(1)}
+      </div>
+    </div>
+  );
 }

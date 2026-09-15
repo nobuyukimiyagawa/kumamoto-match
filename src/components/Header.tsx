@@ -27,11 +27,16 @@ export default function Header({ subtitle }: { subtitle?: string }) {
       className="flex items-center gap-2 px-4 py-2"
       style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}
     >
-      <Link href="/" className="min-w-0 no-underline" style={{ color: "var(--text)" }}>
-        <p className="whitespace-nowrap text-[17px] font-bold leading-tight">{SITE.name}</p>
-        {subtitle && (
-          <p className="hidden truncate text-[12.5px] sm:block" style={{ color: "var(--text-sub)" }}>{subtitle}</p>
-        )}
+      <Link href="/" className="flex min-w-0 items-center gap-2.5 no-underline" style={{ color: "var(--text)" }}>
+        <span className="blink shrink-0" aria-hidden />
+        <span className="min-w-0">
+          <span className="display block whitespace-nowrap text-[16px] font-bold leading-none" style={{ color: "var(--primary)" }}>
+            {SITE.nameEn}
+          </span>
+          <span className="block truncate text-[12px] leading-tight" style={{ color: "var(--text-sub)" }}>
+            {SITE.name}{subtitle && <span className="hidden sm:inline">｜{subtitle}</span>}
+          </span>
+        </span>
       </Link>
 
       <nav className="ml-3 hidden items-center gap-1 sm:flex" aria-label="主要ナビゲーション">
@@ -39,10 +44,11 @@ export default function Header({ subtitle }: { subtitle?: string }) {
           <Link
             key={n.href}
             href={n.href}
-            className="rounded-[8px] px-3 py-2 text-[14px] font-bold"
+            className="rounded-[4px] px-3 py-2 text-[14px] font-bold"
             style={{
               color: isActive(n.href) ? "var(--primary)" : "var(--text-sub)",
               background: isActive(n.href) ? "var(--primary-bg)" : "transparent",
+              boxShadow: isActive(n.href) ? "inset 0 -2px 0 var(--primary)" : "none",
             }}
           >
             {n.label}

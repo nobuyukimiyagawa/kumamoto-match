@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
 /* ============================================================
-   ピッチメイト
-   方針: 読みやすさと押しやすさを最優先にする。
-   - 明るい地に濃い文字。本文は 14px 以上、主要情報は 16px 以上
-   - 押せるものは高さ 44px 以上、押せると分かる見た目にする
-   - 色は「種別」と「選択中」と「行動」の3つにだけ意味を持たせる
+   ピッチメイト — RADAR UI
+   方針: 黒地に白文字、信号色は「レーダーの緑」ひとつ。
+   - 見た目はSFのレーダー探査。ただし読みやすさと押しやすさは落とさない
+     （本文 14px 以上、押せるものは 44px 以上、文字と地のコントラストは AA 以上）
+   - 色に意味を持たせるのは「種別」「選択中」「行動」の3つだけ
+   - 装飾（グリッド・走査線・掃引）はすべて pointer-events: none で操作の邪魔をしない
    ============================================================ */
 :root {
-  --bg:        #f4f6f8;  /* 画面の地 */
-  --surface:   #ffffff;  /* カード・パネル */
-  --line:      #dfe3e8;  /* 区切り線・枠 */
-  --text:      #1b1f24;  /* 本文 */
-  --text-sub:  #5c6470;  /* 補助テキスト。白地で AA を満たす */
-  --primary:   #1f7a3f;  /* 行動（ボタン・選択中） */
-  --primary-dk:#175e31;
-  --primary-bg:#e8f4ec;  /* 選択中カードの地 */
-  --match:     #2457c5;  /* トレーニングマッチ */
-  --match-bg:  #e7eefb;
-  --helper:    #d3541b;  /* 助っ人 */
-  --helper-bg: #fdeee5;
-  --danger:    #c0392b;
+  color-scheme: dark;
+
+  --bg:        #07090c;  /* 画面の地。ほぼ黒 */
+  --bg-2:      #0c1015;  /* 一段明るい地（一覧の背景） */
+  --surface:   #11161c;  /* カード・パネル */
+  --surface-2: #182028;  /* パネルの中の強調枠 */
+  --line:      #2a323c;  /* 区切り線・枠 */
+  --line-2:    #3d4753;  /* hover 時の枠 */
+  --text:      #eef2f6;  /* 本文 */
+  --text-sub:  #a9b3bf;  /* 補助テキスト。#11161c 上で 8:1 */
+
+  --primary:   #5df08a;  /* レーダーの緑。行動・選択中・掃引 */
+  --primary-dk:#3fd170;
+  --primary-bg:rgba(93, 240, 138, .10);
+  --primary-rgb: 93, 240, 138;
+
+  --match:     #7dd3fc;  /* トレーニングマッチ（シアン） */
+  --match-bg:  rgba(125, 211, 252, .12);
+  --helper:    #fbbf24;  /* 助っ人（アンバー） */
+  --helper-bg: rgba(251, 191, 36, .12);
+  --danger:    #ff6b6b;
+
+  --star:      #fbbf24;
+  --star-off:  #3a434e;
+
+  --font-mono: "Share Tech Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -36,69 +50,123 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 画面全体の薄いグリッド。地図や写真の上には出ない（body の地だけ） */
+body {
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
+}
+
+/* 走査線。ごく薄く、操作の邪魔をしない */
+body::after {
+  content: "";
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 3px, rgba(0,0,0,.07) 3px, rgba(0,0,0,.07) 4px
+  );
+  opacity: .5;
+}
+
+a { color: inherit; }
+::selection { background: rgba(var(--primary-rgb), .35); }
+
 /* 部品はすべて components 層に置く。Tailwind の utilities 層（hidden など）が上書きできるようにするため */
 @layer components {
   /* 数字の桁を揃える（日付・時刻・金額） */
   .num { font-variant-numeric: tabular-nums; }
 
-  /* 白いパネル。区切りは薄い線と、ごく浅い影 */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  /* 計器の文字。英数字の見出し・ラベルに使う */
+  .hud {
+    font-family: var(--font-mono);
+    letter-spacing: .12em; text-transform: uppercase;
+    font-size: 11.5px; line-height: 1.2;
+    color: var(--text-sub);
   }
-  .card-active {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(31, 122, 63, .12);
+  .hud-accent { color: var(--primary); }
+  .display { font-family: var(--font-display), var(--font-mono); letter-spacing: .06em; }
+
+  /* 緑の点滅点。稼働中を示す */
+  .blink {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 8px var(--primary);
+    animation: blink 1.6s steps(2, start) infinite;
   }
 
-  /* 押せるチップ。高さ 40px、選択中は塗る */
+  /* パネル。四隅に短い括弧を出して「計器」らしくする */
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .card::before, .card::after {
+    content: ""; position: absolute; width: 10px; height: 10px;
+    border-color: var(--line-2); border-style: solid; pointer-events: none;
+  }
+  .card::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-top-left-radius: 4px; }
+  .card::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-bottom-right-radius: 4px; }
+  .card-active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary), 0 0 24px rgba(var(--primary-rgb), .18);
+  }
+  .card-active::before, .card-active::after { border-color: var(--primary); }
+
+  /* 押せるチップ。高さ 40px、選択中は緑で塗る */
   .chip {
     display: inline-flex; align-items: center; justify-content: center;
     min-height: 40px; padding: 0 14px;
-    border: 1px solid var(--line); border-radius: 999px;
-    background: var(--surface); color: var(--text);
+    border: 1px solid var(--line-2); border-radius: 4px;
+    background: transparent; color: var(--text);
     font-size: 14px; font-weight: 700; white-space: nowrap;
     cursor: pointer; transition: background .15s, border-color .15s, color .15s;
   }
-  .chip:hover { border-color: #b9c1cb; }
+  .chip:hover { border-color: var(--text-sub); background: rgba(255,255,255,.04); }
   .chip[aria-pressed="true"], .chip[data-on="true"] {
-    background: var(--primary); border-color: var(--primary); color: #fff;
+    background: var(--primary); border-color: var(--primary); color: #061008;
+    box-shadow: 0 0 12px rgba(var(--primary-rgb), .35);
   }
+  .chip:disabled { opacity: .5; cursor: default; }
 
   /* 主要ボタン */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     min-height: 44px; padding: 0 18px;
-    border-radius: 10px; border: 1px solid transparent;
+    border-radius: 4px; border: 1px solid transparent;
     font-size: 15px; font-weight: 700; cursor: pointer;
-    transition: background .15s, border-color .15s;
+    transition: background .15s, border-color .15s, box-shadow .15s;
   }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: var(--primary-dk); }
-  .btn-ghost { background: var(--surface); color: var(--text); border-color: var(--line); }
-  .btn-ghost:hover { border-color: #b9c1cb; }
+  .btn-primary { background: var(--primary); color: #061008; }
+  .btn-primary:hover { background: var(--primary-dk); box-shadow: 0 0 16px rgba(var(--primary-rgb), .35); }
+  .btn-ghost { background: transparent; color: var(--text); border-color: var(--line-2); }
+  .btn-ghost:hover { border-color: var(--text); background: rgba(255,255,255,.04); }
+  .btn:disabled { opacity: .5; cursor: default; }
 
-  /* 種別バッジ */
+  /* 種別バッジ。枠線＋薄い塗り */
   .badge {
     display: inline-flex; align-items: center;
-    height: 26px; padding: 0 10px; border-radius: 6px;
-    font-size: 12.5px; font-weight: 700; letter-spacing: .02em;
+    height: 26px; padding: 0 10px; border-radius: 3px;
+    border: 1px solid currentColor;
+    font-size: 12.5px; font-weight: 700; letter-spacing: .04em;
   }
   .badge-match  { background: var(--match-bg);  color: var(--match); }
   .badge-helper { background: var(--helper-bg); color: var(--helper); }
-  .badge-gray   { background: #eef1f4; color: var(--text-sub); }
+  .badge-gray   { background: var(--surface-2); color: var(--text-sub); border-color: var(--line-2); }
+  .badge-ok     { background: var(--primary-bg); color: var(--primary); }
 
   /* フォーム部品。iOS で拡大されないよう 16px */
   .field {
     width: 100%; min-height: 46px; padding: 10px 12px;
-    border: 1px solid var(--line); border-radius: 10px;
-    background: var(--surface); color: var(--text);
+    border: 1px solid var(--line-2); border-radius: 4px;
+    background: var(--bg-2); color: var(--text);
     font-size: 16px; line-height: 1.4; outline: none;
     transition: border-color .15s, box-shadow .15s;
   }
-  .field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(31,122,63,.18); }
+  .field::placeholder { color: #6b7684; }
+  .field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), .22); }
   .label { display: block; font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
   .hint  { font-size: 12.5px; color: var(--text-sub); margin-top: 6px; }
 
@@ -106,47 +174,159 @@ html, body {
   .no-bar { scrollbar-width: none; -ms-overflow-style: none; }
   .no-bar::-webkit-scrollbar { display: none; }
 
-  /* 地図上のピン */
+  /* 地図上のピン＝レーダーの反応点。輪が広がる */
   .pin {
-    display: inline-flex; align-items: center; gap: 4px;
-    height: 30px; padding: 0 10px; border-radius: 999px;
-    background: var(--surface); color: var(--text);
-    border: 2px solid var(--line);
+    position: relative;
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 30px; padding: 0 10px 0 8px; border-radius: 4px;
+    background: rgba(7, 9, 12, .88); color: var(--text);
+    border: 1px solid var(--line-2);
     font-size: 13px; font-weight: 700; white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(16, 24, 40, .18);
-    cursor: pointer; transition: transform .15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+    cursor: pointer; transition: transform .15s, border-color .15s;
+    backdrop-filter: blur(2px);
+  }
+  .pin::before {
+    /* 反応点の丸 */
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor; box-shadow: 0 0 8px currentColor;
   }
   .pin::after {
     /* 下向きの小さな三角。会場の位置を指す */
-    content: ""; position: absolute; left: 50%; bottom: -7px;
-    width: 10px; height: 10px; transform: translateX(-50%) rotate(45deg);
-    background: inherit; border-right: 2px solid; border-bottom: 2px solid; border-color: inherit;
-    border-bottom-right-radius: 2px;
+    content: ""; position: absolute; left: 50%; bottom: -6px;
+    width: 9px; height: 9px; transform: translateX(-50%) rotate(45deg);
+    background: inherit; border-right: 1px solid; border-bottom: 1px solid; border-color: inherit;
   }
   .pin-match  { border-color: var(--match);  color: var(--match); }
   .pin-helper { border-color: var(--helper); color: var(--helper); }
   .pin-active {
-    background: var(--primary); border-color: var(--primary); color: #fff;
+    background: var(--primary); border-color: var(--primary); color: #061008;
     transform: scale(1.08);
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), .25), 0 0 20px rgba(var(--primary-rgb), .5);
   }
+  .pin-active::before { box-shadow: none; }
 
   /* 横スクロールの右端をぼかす。PC では不要 */
   .scroll-hint { position: relative; }
   .scroll-hint::after {
     content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 40px;
-    background: linear-gradient(90deg, rgba(255,255,255,0), var(--surface));
+    background: linear-gradient(90deg, rgba(17,22,28,0), var(--surface));
     pointer-events: none;
   }
   @media (min-width: 768px) { .scroll-hint::after { display: none; } }
 
-  /* 現在地の点 */
+  /* 現在地。緑の点から輪が広がる */
   .me {
-    width: 18px; height: 18px; border-radius: 50%;
-    background: #1d6fe0; border: 3px solid #fff;
-    box-shadow: 0 0 0 2px rgba(29,111,224,.35), 0 2px 6px rgba(16,24,40,.3);
+    position: relative;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--primary); border: 2px solid #061008;
+    box-shadow: 0 0 10px var(--primary);
   }
+  .me::before, .me::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 1px solid var(--primary); opacity: 0;
+    animation: ping 2.4s ease-out infinite;
+  }
+  .me::after { animation-delay: 1.2s; }
+
+  /* ---------- レーダー ---------- */
+  /* 地図の上に重ねる掃引。中心は CSS 変数で動かす */
+  .radar {
+    position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+    --cx: 50%; --cy: 50%;
+  }
+  .radar-sweep {
+    position: absolute; left: var(--cx); top: var(--cy);
+    width: 200vmax; height: 200vmax; margin: -100vmax 0 0 -100vmax;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      rgba(var(--primary-rgb), 0) 0deg,
+      rgba(var(--primary-rgb), 0) 300deg,
+      rgba(var(--primary-rgb), .04) 330deg,
+      rgba(var(--primary-rgb), .26) 359deg,
+      rgba(var(--primary-rgb), 0) 360deg
+    );
+    animation: sweep 4.5s linear infinite;
+    will-change: transform;
+  }
+  /* 中心から広がる同心円と十字線 */
+  .radar-rings {
+    position: absolute; left: var(--cx); top: var(--cy);
+    width: 0; height: 0; pointer-events: none;
+  }
+  .radar-rings i {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    border-radius: 50%; border: 1px solid rgba(var(--primary-rgb), .22);
+  }
+  .radar-rings i:nth-child(1) { width: 140px; height: 140px; }
+  .radar-rings i:nth-child(2) { width: 300px; height: 300px; border-color: rgba(var(--primary-rgb), .16); }
+  .radar-rings i:nth-child(3) { width: 480px; height: 480px; border-color: rgba(var(--primary-rgb), .10); }
+  .radar-rings i:nth-child(4) { width: 700px; height: 700px; border-color: rgba(var(--primary-rgb), .06); }
+  .radar-cross { position: absolute; inset: 0; }
+  .radar-cross::before, .radar-cross::after {
+    content: ""; position: absolute; background: rgba(var(--primary-rgb), .12);
+  }
+  .radar-cross::before { left: var(--cx); top: 0; bottom: 0; width: 1px; }
+  .radar-cross::after  { top: var(--cy); left: 0; right: 0; height: 1px; }
+  /* 四隅の枠。画面の端が「計器の窓」に見える */
+  .radar-frame::before, .radar-frame::after,
+  .radar-frame i.tl, .radar-frame i.br {
+    content: ""; position: absolute; width: 18px; height: 18px;
+    border: 2px solid rgba(var(--primary-rgb), .7); pointer-events: none;
+  }
+  .radar-frame::before { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+  .radar-frame::after  { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+  .radar-frame i.tl { display: none; }
+  .radar-frame i.br { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+  /* 地図の端を暗く落とす */
+  .radar-vignette {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(7,9,12,0) 60%, rgba(7,9,12,.45) 100%);
+  }
+
+  /* 地図の隅の計器表示 */
+  .readout {
+    position: absolute; z-index: 5; pointer-events: none;
+    padding: 6px 10px; border-radius: 4px;
+    background: rgba(7, 9, 12, .78); border: 1px solid rgba(var(--primary-rgb), .35);
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .08em; line-height: 1.5;
+    color: var(--primary); text-transform: uppercase;
+    backdrop-filter: blur(3px);
+  }
+  .readout b { color: var(--text); font-weight: 400; }
+
+  /* 区切り線に目盛りを刻む */
+  .ticks {
+    height: 6px;
+    background: repeating-linear-gradient(90deg, var(--line-2) 0 1px, transparent 1px 12px);
+    opacity: .7;
+  }
+
+  /* MapLibre: 地図にフォーカスしたときの枠を緑に */
+  .maplibregl-canvas:focus { outline: 1px solid rgba(var(--primary-rgb), .6); outline-offset: -1px; }
+  /* MapLibre の操作ボタンを黒に */
+  .maplibregl-ctrl-group {
+    background: rgba(7, 9, 12, .85) !important;
+    border: 1px solid var(--line-2) !important;
+    box-shadow: none !important; border-radius: 4px !important;
+  }
+  .maplibregl-ctrl-group button { background: transparent !important; }
+  .maplibregl-ctrl-group button + button { border-top: 1px solid var(--line) !important; }
+  .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1) brightness(1.4); }
+  .maplibregl-ctrl-attrib {
+    background: rgba(7, 9, 12, .7) !important; color: var(--text-sub) !important;
+    font-family: var(--font-mono); font-size: 10px !important;
+  }
+  .maplibregl-ctrl-attrib a { color: var(--text-sub) !important; }
+  .maplibregl-ctrl-attrib-button { filter: invert(1); }
 }
+
+@keyframes sweep { to { transform: rotate(360deg); } }
+@keyframes ping  { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(2.6); opacity: 0; } }
+@keyframes blink { to { visibility: hidden; } }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
+  .radar-sweep { display: none; }
 }

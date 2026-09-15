@@ -89,7 +89,7 @@ export default function SearchPage() {
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <section
           className="relative h-[36vh] shrink-0 md:order-2 md:h-auto md:flex-1"
-          style={{ borderBottom: "1px solid var(--line)" }}
+          style={{ borderBottom: "1px solid var(--line)", background: "var(--bg)" }}
           aria-label="地図"
         >
           <SearchMap
@@ -100,20 +100,25 @@ export default function SearchPage() {
 
         <section
           className="flex min-h-0 flex-1 flex-col md:order-1 md:w-[30rem] md:flex-none"
-          style={{ background: "var(--bg)", borderRight: "1px solid var(--line)" }}
+          style={{ background: "var(--bg-2)", borderRight: "1px solid var(--line)" }}
           aria-label="募集一覧"
         >
           <div className="px-4 py-2.5 md:pb-3 md:pt-3" style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}>
+            <p className="hud mb-2 hidden md:block">filter</p>
             <Filters value={filter} onChange={changeFilter} locating={locating} locError={locError} />
           </div>
+          <div className="ticks" aria-hidden />
 
           <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-3 md:pb-6">
-            <p className="mb-2 text-[13.5px] font-bold" style={{ color: "var(--text-sub)" }}>
-              {posts.length}件の募集
-              <span className="ml-2 font-normal">
-                日付の近い順{filter.radiusKm && origin ? `・現在地から${filter.radiusKm}km以内` : ""}
-              </span>
-            </p>
+            <div className="mb-2 flex items-baseline gap-2">
+              <span className="hud hud-accent">scan result</span>
+              <p className="text-[13.5px] font-bold" style={{ color: "var(--text-sub)" }}>
+                <span className="num text-[16px]" style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}>{posts.length}</span>件の募集
+                <span className="ml-2 font-normal">
+                  日付の近い順{filter.radiusKm && origin ? `・現在地から${filter.radiusKm}km以内` : ""}
+                </span>
+              </p>
+            </div>
 
             {posts.length === 0 ? (
               <div className="card p-6 text-center">
@@ -131,10 +136,10 @@ export default function SearchPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {posts.map((p) => (
+                {posts.map((p, i) => (
                   <div key={p.id} ref={(el) => { cardRefs.current[p.id] = el; }}>
                     <PostCard
-                      post={p} active={activeId === p.id} onSelect={() => setActiveId(p.id)}
+                      post={p} active={activeId === p.id} onSelect={() => setActiveId(p.id)} index={i + 1}
                       distanceKm={origin ? distanceKm(origin, p.venue) : null}
                       rating={ratingSummary(db, { kind: "team", id: p.teamId })}
                       entries={applicationsForPost(db, p.id).filter((a) => a.status !== "rejected").length}

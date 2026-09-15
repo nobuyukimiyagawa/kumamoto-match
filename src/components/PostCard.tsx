@@ -15,9 +15,11 @@ export function fmtDate(iso: string) {
 }
 
 export default function PostCard({
-  post, active, onSelect, distanceKm, rating, entries,
+  post, active, onSelect, distanceKm, rating, entries, index,
 }: {
   post: PostView;
+  /** 一覧での通し番号。計器の「TGT 01」表示用 */
+  index?: number;
   active: boolean;
   onSelect: () => void;
   distanceKm?: number | null;
@@ -36,12 +38,15 @@ export default function PostCard({
     >
       {/* 1行目: 種別とレベル。色だけに頼らず文字で示す */}
       <div className="flex flex-wrap items-center gap-2">
+        {index != null && (
+          <span className="hud" aria-hidden>tgt {String(index).padStart(2, "0")}</span>
+        )}
         <span className={`badge ${helper ? "badge-helper" : "badge-match"}`}>{KIND_LABEL[post.kind]}</span>
         <span className="badge badge-gray">{LEVEL_LABEL[post.level]}</span>
         {post.status === "filled" && <span className="badge badge-gray">成立</span>}
         {active && (
-          <span className="ml-auto text-[12.5px] font-bold" style={{ color: "var(--primary)" }}>
-            地図に表示中
+          <span className="hud hud-accent ml-auto" style={{ fontWeight: 700 }}>
+            ● lock
           </span>
         )}
       </div>
@@ -49,7 +54,9 @@ export default function PostCard({
       {/* 2行目: いつ。いちばん最初に知りたい情報を最も大きく */}
       <p className="num mt-2.5 text-[18px] font-bold leading-tight">
         {fmtDate(post.date)}
-        <span className="ml-2">{post.startTime}〜{post.endTime}</span>
+        <span className="ml-2" style={{ fontFamily: "var(--font-mono)", fontWeight: 400, letterSpacing: ".04em" }}>
+          {post.startTime}–{post.endTime}
+        </span>
       </p>
 
       {/* 3行目: 誰が（評価つき）、どこで */}
@@ -58,7 +65,7 @@ export default function PostCard({
         <Stars value={rating.avg} count={rating.count} size={14} />
       </p>
       <p className="mt-0.5 text-[14px]" style={{ color: "var(--text-sub)" }}>
-        <span aria-hidden>📍 </span>{post.venue.name}
+        <span aria-hidden style={{ color: "var(--primary)" }}>◎ </span>{post.venue.name}
         <span className="ml-1">（{post.venue.city}）</span>
         {distanceKm != null && (
           <span className="num ml-2 inline-block whitespace-nowrap font-bold" style={{ color: "var(--primary)" }}>

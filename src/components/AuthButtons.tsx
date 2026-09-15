@@ -78,7 +78,7 @@ export default function AuthButtons({ intent }: { intent: AuthIntent }) {
       <div className="card flex flex-col gap-3 p-5">
         <button
           type="button" className="btn w-full"
-          style={{ minHeight: 50, fontSize: 16, background: "#fff", border: "1px solid var(--line)", color: "var(--text)" }}
+          style={{ minHeight: 50, fontSize: 16, background: "#fff", border: "1px solid #fff", color: "#1b1f24" }}
           onClick={async () => {
             setError(null); setAuthIntent(intent);
             const r = await signInWithGoogle();

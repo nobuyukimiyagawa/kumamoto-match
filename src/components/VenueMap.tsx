@@ -5,7 +5,7 @@ import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Venue } from "@/types";
 
-const STYLE = "https://tiles.openfreemap.org/styles/liberty";
+const STYLE = "https://tiles.openfreemap.org/styles/dark";
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 maplibregl.setWorkerUrl(`${BASE}/maplibre/maplibre-gl-worker.mjs`);
 
@@ -34,8 +34,8 @@ export default function VenueMap({ venue }: { venue: Venue }) {
     >
       <div ref={holder} className="h-full w-full" />
       <span
-        className="absolute bottom-2 left-2 rounded-[8px] px-2.5 py-1 text-[12.5px] font-bold"
-        style={{ background: "var(--surface)", border: "1px solid var(--line)" }}
+        className="absolute bottom-2 left-2 rounded-[4px] px-2.5 py-1 text-[12.5px] font-bold"
+        style={{ background: "rgba(7,9,12,.85)", border: "1px solid var(--line-2)" }}
       >
         Google マップで開く ↗
       </span>

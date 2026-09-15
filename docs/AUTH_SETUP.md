@@ -112,3 +112,27 @@ npx supabase functions deploy line-auth --no-verify-jwt
 メールが取れない LINE ユーザーは `line_<sub>@line.pitchmate.invalid` という代替アドレスで
 作られる。本人には見せない。後で同じメールの Google ログインと統合したい場合は、
 auth.users を手で結合する必要がある（未対応）。
+
+## 4. メール送信（SMTP）と日本語テンプレート
+
+Supabase 標準の送信はテンプレートを編集できない（英語固定・送信数制限あり）ため、
+**カスタム SMTP** を有効にしてテンプレートを日本語化した（2026-09-15）。
+
+- 現在: Gmail SMTP（smtp.gmail.com:465、送信者 nobuyuki.miyagawa14@gmail.com / 表示名「ピッチメイト」、
+  Google アカウントの「アプリパスワード」で認証）。設定は Authentication → Emails → SMTP Settings。
+- 予定: 独自ドメイン取得後に Resend へ移行（送信者を `noreply@<ドメイン>` にする）。
+
+テンプレート（Authentication → Emails → Templates）は 13 種すべて日本語化済み。件名は
+「【ピッチメイト】…」で統一。実際に使われるのは主に次の 3 つ:
+
+| テンプレート | いつ届く |
+|---|---|
+| Confirm sign up | メール＋パスワードで新規登録したとき |
+| Reset password | 「パスワードを忘れた方はこちら」から送ったとき |
+| Change email address | メールアドレス変更時（現状 UI なし） |
+
+Magic link / Invite / Reauthentication / 各種「変更通知」も日本語にしてあるが、
+変更通知（Password changed など）は **Enable notification が OFF** のままなので送られない。
+必要になったら各テンプレート画面のトグルを ON にする。
+
+動作確認: 本番サイトのパスワード再設定から送信 → 日本語件名で Gmail に到達（2026-09-15）。

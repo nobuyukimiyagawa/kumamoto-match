@@ -145,7 +145,7 @@ export default function MyPage() {
               {t.badge ? (
                 <span
                   className="num ml-1.5 rounded-full px-1.5 text-[12px]"
-                  style={{ background: current === t.id ? "#fff" : "var(--helper)", color: current === t.id ? "var(--primary)" : "#fff" }}
+                  style={{ background: current === t.id ? "#061008" : "var(--helper)", color: current === t.id ? "var(--primary)" : "#061008" }}
                 >
                   {t.badge}
                 </span>
@@ -179,7 +179,7 @@ function StatusBadge({ s }: { s: Application["status"] }) {
     <span
       className="badge"
       style={{
-        background: s === "approved" ? "var(--primary-bg)" : s === "pending" ? "var(--helper-bg)" : "#eef1f4",
+        background: s === "approved" ? "var(--primary-bg)" : s === "pending" ? "var(--helper-bg)" : "var(--surface-2)",
         color: s === "approved" ? "var(--primary)" : s === "pending" ? "var(--helper)" : "var(--text-sub)",
       }}
     >

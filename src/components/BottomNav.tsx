@@ -11,10 +11,11 @@ export default function BottomNav() {
   const path = usePathname();
   const canPost = sid ? teamsRunBy(db, sid).length > 0 : false;
 
+  // アイコンは絵文字でなく線画。レーダー／プラス／人
   const items = [
-    { href: "/", label: "探す", icon: "🔍" },
-    ...(canPost ? [{ href: "/post/new/", label: "募集する", icon: "＋" }] : []),
-    { href: "/me/", label: "マイページ", icon: "👤" },
+    { href: "/", label: "探す", icon: <IconRadar /> },
+    ...(canPost ? [{ href: "/post/new/", label: "募集する", icon: <IconPlus /> }] : []),
+    { href: "/me/", label: "マイページ", icon: <IconUser /> },
   ];
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
@@ -32,10 +33,26 @@ export default function BottomNav() {
           style={{ minHeight: 56, color: isActive(it.href) ? "var(--primary)" : "var(--text-sub)" }}
           aria-current={isActive(it.href) ? "page" : undefined}
         >
-          <span aria-hidden style={{ fontSize: 18, lineHeight: 1 }}>{it.icon}</span>
+          <span aria-hidden className="inline-flex" style={{ width: 20, height: 20 }}>{it.icon}</span>
           {it.label}
         </Link>
       ))}
     </nav>
   );
+}
+
+const svg = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+function IconRadar() {
+  return (
+    <svg {...svg}>
+      <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" />
+      <path d="M12 12 L19 6" /><circle cx="12" cy="12" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+function IconPlus() {
+  return <svg {...svg}><path d="M12 5v14M5 12h14" /></svg>;
+}
+function IconUser() {
+  return <svg {...svg}><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></svg>;
 }

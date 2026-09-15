@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { BIZ_UDPGothic } from "next/font/google";
+import { BIZ_UDPGothic, Orbitron, Share_Tech_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/config/site";
 
@@ -7,6 +7,10 @@ import { SITE } from "@/config/site";
 const body = BIZ_UDPGothic({
   subsets: ["latin"], weight: ["400", "700"], variable: "--font-body",
 });
+// 計器の英数字。ロゴと見出し用（和文には使わない）
+const display = Orbitron({ subsets: ["latin"], weight: ["500", "700"], variable: "--font-display" });
+// 計器の読み取り値。日時・座標・件数など
+const mono = Share_Tech_Mono({ subsets: ["latin"], weight: "400", variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: `${SITE.name} | ${SITE.tagline}`,
@@ -18,12 +22,12 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#ffffff",
+  themeColor: "#07090c",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={body.variable}>
+    <html lang="ja" className={`${body.variable} ${display.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );

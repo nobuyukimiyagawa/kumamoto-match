@@ -25,7 +25,7 @@ function Row<T extends string | number>({
   return (
     <div className="flex shrink-0 items-center gap-2 md:items-start">
       <span className="shrink-0 text-[13px] font-bold md:w-[4.6rem] md:pt-2.5" style={{ color: "var(--text-sub)" }}>
-        {title}
+        <span aria-hidden style={{ color: "var(--primary)" }}>▸ </span>{title}
       </span>
       <div className="flex gap-2 py-0.5 md:flex-wrap" role="group" aria-label={title}>
         {items.map(([v, label]) => (

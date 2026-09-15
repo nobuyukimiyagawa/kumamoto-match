@@ -133,7 +133,7 @@ export default function NewPostPage() {
             </div>
 
             {helper && (
-              <div className="flex flex-col gap-4 rounded-[10px] p-4" style={{ background: "var(--helper-bg)", border: "1px solid #f3c9b0" }}>
+              <div className="flex flex-col gap-4 rounded-[10px] p-4" style={{ background: "var(--helper-bg)", border: "1px solid rgba(251,191,36,.35)" }}>
                 <fieldset>
                   <legend className="label">募集するポジション（複数可）</legend>
                   <div className="flex flex-wrap gap-2">

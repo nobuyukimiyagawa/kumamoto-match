@@ -18,7 +18,7 @@ export default function ApplicantRow({ a, canDecide, db }: { a: Application; can
         <span
           className="badge ml-auto"
           style={{
-            background: s === "approved" ? "var(--primary-bg)" : s === "pending" ? "var(--helper-bg)" : "#eef1f4",
+            background: s === "approved" ? "var(--primary-bg)" : s === "pending" ? "var(--helper-bg)" : "var(--surface-2)",
             color: s === "approved" ? "var(--primary)" : s === "pending" ? "var(--helper)" : "var(--text-sub)",
           }}
         >

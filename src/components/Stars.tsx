@@ -13,11 +13,11 @@ export function Stars({
         {[1, 2, 3, 4, 5].map((i) => {
           const fill = Math.max(0, Math.min(1, value - (i - 1)));
           return (
-            <span key={i} className="relative inline-block" style={{ color: "#d9dde3" }}>
+            <span key={i} className="relative inline-block" style={{ color: "var(--star-off)" }}>
               ★
               <span
                 className="absolute left-0 top-0 overflow-hidden"
-                style={{ width: `${fill * 100}%`, color: "#f5a524", whiteSpace: "nowrap" }}
+                style={{ width: `${fill * 100}%`, color: "var(--star)", whiteSpace: "nowrap" }}
               >
                 ★
               </span>
@@ -59,7 +59,7 @@ export function StarInput({
             className="leading-none"
             style={{
               fontSize: size, width: size + 6, height: size + 6,
-              color: i <= shown ? "#f5a524" : "#d9dde3",
+              color: i <= shown ? "var(--star)" : "var(--star-off)",
               background: "transparent", border: 0, cursor: "pointer",
             }}
             onMouseEnter={() => setHover(i)}
