@@ -79,10 +79,10 @@ export default function Calendar({
               style={{
                 minHeight: 46,
                 borderColor: on ? "var(--primary)" : today ? "var(--line-2)" : "transparent",
-                background: on ? "var(--primary)" : n > 0 ? "rgba(255,255,255,.04)" : "transparent",
-                color: on ? "#061008" : past ? "#4b5561" : dow === 0 ? "var(--danger)" : dow === 6 ? "var(--match)" : "var(--text)",
+                background: on ? "var(--primary)" : n > 0 ? "var(--primary-bg)" : "transparent",
+                color: on ? "var(--on-primary)" : past ? "#b0b7c0" : dow === 0 ? "var(--danger)" : dow === 6 ? "var(--match)" : "var(--text)",
                 cursor: past ? "default" : "pointer",
-                boxShadow: on ? "0 0 12px rgba(var(--primary-rgb), .35)" : "none",
+                boxShadow: on ? "0 2px 10px rgba(var(--primary-rgb), .3)" : "none",
                 fontWeight: today || on ? 700 : 400,
               }}
               disabled={past}
@@ -94,7 +94,7 @@ export default function Calendar({
               <span
                 className="mt-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[11px] font-bold"
                 style={{
-                  background: on ? "#061008" : n > 0 ? "var(--primary-bg)" : "transparent",
+                  background: on ? "var(--on-primary)" : n > 0 ? "var(--surface)" : "transparent",
                   color: on ? "var(--primary)" : n > 0 ? "var(--primary)" : "transparent",
                 }}
                 aria-hidden

@@ -132,7 +132,7 @@ export default function TeamManagePage() {
               {t.label}
               {t.badge ? (
                 <span className="num ml-1.5 rounded-full px-1.5 text-[12px]"
-                  style={{ background: tab === t.id ? "#061008" : "var(--helper)", color: tab === t.id ? "var(--primary)" : "#061008" }}>
+                  style={{ background: tab === t.id ? "var(--on-primary)" : "var(--helper)", color: tab === t.id ? "var(--primary)" : "var(--on-primary)" }}>
                   {t.badge}
                 </span>
               ) : null}

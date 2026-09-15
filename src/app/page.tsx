@@ -134,7 +134,7 @@ export default function SearchPage() {
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <section
           className="relative h-[36vh] shrink-0 md:order-2 md:h-auto md:flex-1"
-          style={{ borderBottom: "1px solid var(--line)", background: "var(--bg)" }}
+          style={{ borderBottom: "1px solid var(--line)", background: "var(--bg-2)" }}
           aria-label="地図"
         >
           <SearchMap
@@ -185,7 +185,7 @@ export default function SearchPage() {
                 ) : (
                   <>
                     <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
-                      日付や種別、場所を広げてみてください。
+                      日付や探すもの、場所を広げてみてください。
                     </p>
                     <button type="button" className="btn btn-ghost mt-4" onClick={() => changeFilter({ ...defaultFilter(), date: null })}>
                       絞り込みをすべて外す

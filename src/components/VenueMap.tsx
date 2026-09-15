@@ -35,7 +35,7 @@ export default function VenueMap({ venue }: { venue: Venue }) {
       <div ref={holder} className="h-full w-full" />
       <span
         className="absolute bottom-2 left-2 rounded-[4px] px-2.5 py-1 text-[12.5px] font-bold"
-        style={{ background: "rgba(7,9,12,.85)", border: "1px solid var(--line-2)" }}
+        style={{ background: "rgba(255,255,255,.92)", border: "1px solid var(--line-2)" }}
       >
         Google マップで開く ↗
       </span>

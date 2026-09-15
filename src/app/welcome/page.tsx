@@ -22,7 +22,7 @@ export default function WelcomePage() {
 
 function Step({ n, label, state }: { n: number; label: string; state: "done" | "now" | "todo" }) {
   const bg = state === "done" ? "var(--primary)" : state === "now" ? "var(--primary-bg)" : "var(--surface-2)";
-  const fg = state === "done" ? "#061008" : state === "now" ? "var(--primary)" : "var(--text-sub)";
+  const fg = state === "done" ? "var(--on-primary)" : state === "now" ? "var(--primary)" : "var(--text-sub)";
   return (
     <li className="flex items-center gap-2 text-[13.5px]" style={{ color: state === "todo" ? "var(--text-sub)" : "var(--text)" }}>
       <span className="num inline-flex h-6 w-6 items-center justify-center rounded-full font-bold" style={{ background: bg, color: fg }}>
