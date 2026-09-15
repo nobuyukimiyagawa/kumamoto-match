@@ -1,0 +1,300 @@
+<title>PITCHMATE ロゴ案</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+  :root {
+    --bg: #07090c; --bg-2: #0c1015; --surface: #11161c; --line: #2a323c; --line-2: #3d4753;
+    --text: #eef2f6; --sub: #a9b3bf; --green: #5df08a; --green-rgb: 93,240,138;
+    --cyan: #7dd3fc; --amber: #fbbf24;
+    --light: #f4f6f8; --light-text: #1b1f24; --light-line: #dfe3e8;
+    --mono: "Share Tech Mono", ui-monospace, Menlo, monospace;
+    --display: "Orbitron", "Share Tech Mono", sans-serif;
+    --jp: "BIZ UDPGothic", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--jp); font-size: 15px; line-height: 1.7;
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 40px 24px 80px; }
+  .hud { font-family: var(--mono); letter-spacing: .12em; text-transform: uppercase; font-size: 11.5px; color: var(--sub); }
+  .hud.g { color: var(--green); }
+  h1 { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .06em; margin: 6px 0 4px; color: var(--green); text-wrap: balance; }
+  .lead { color: var(--sub); max-width: 60ch; margin: 0 0 8px; }
+  .brief { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 12px; margin: 24px 0 40px; }
+  .brief div { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+  .brief b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .brief span { color: var(--sub); font-size: 13.5px; }
+
+  section.logo { border-top: 1px solid var(--line); padding: 32px 0 40px; }
+  .head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+  .head h2 { font-size: 20px; margin: 0; font-weight: 700; }
+  .head .en { font-family: var(--mono); color: var(--green); font-size: 13px; letter-spacing: .1em; }
+  .concept { color: var(--sub); max-width: 62ch; margin: 0 0 18px; }
+  .concept b { color: var(--text); }
+
+  .stage { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .stage { grid-template-columns: 1fr; } }
+  .plate { border-radius: 6px; padding: 28px 28px; display: flex; align-items: center; justify-content: center; min-height: 190px; position: relative; }
+  .plate.dark { background: var(--bg-2); border: 1px solid var(--line-2); }
+  .plate.light { background: var(--light); border: 1px solid var(--light-line); color: var(--light-text); }
+  .plate .tag { position: absolute; left: 10px; top: 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
+  .plate.light .tag { color: var(--light-text); }
+  .plate::before, .plate::after { content: ""; position: absolute; width: 10px; height: 10px; border: 2px solid var(--line-2); }
+  .plate::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+  .plate::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+  .plate.light::before, .plate.light::after { border-color: #b9c1cb; }
+
+  .lockup { display: flex; align-items: center; gap: 18px; }
+  .lockup svg { width: 84px; height: 84px; flex: none; }
+  .word { display: flex; flex-direction: column; line-height: 1; }
+  .word .en { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: .08em; }
+  .word .jp { font-family: var(--jp); font-weight: 700; font-size: 13px; letter-spacing: .3em; margin-top: 8px; color: var(--sub); }
+  .plate.light .word .jp { color: #5c6470; }
+  .word.g .en { color: var(--green); }
+  .plate.light .word.g .en { color: #1f7a3f; }
+
+  .icons { grid-column: 1 / -1; display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; padding: 6px 4px 0; }
+  .icons .ic { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .icons .ic span { font-family: var(--mono); font-size: 10.5px; color: var(--sub); letter-spacing: .1em; }
+  .tile { display: inline-flex; align-items: center; justify-content: center; border-radius: 22%; }
+  .tile.k { background: #07090c; border: 1px solid var(--line-2); }
+  .tile.g { background: var(--green); }
+  .tile.w { background: #fff; border: 1px solid var(--light-line); }
+  .tile svg { width: 74%; height: 74%; }
+  .header-demo { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; }
+  .header-demo svg { width: 26px; height: 26px; }
+  .header-demo .en { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: .06em; color: var(--green); }
+  .header-demo .jp { font-size: 12px; color: var(--sub); }
+  .header-demo .nav { margin-left: auto; font-size: 13px; color: var(--sub); display: flex; gap: 14px; }
+  .header-demo .nav b { color: var(--green); }
+  .notes { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 10px; margin-top: 4px; }
+  .notes div { font-size: 13px; color: var(--sub); border-left: 2px solid var(--line-2); padding-left: 10px; }
+  .notes b { color: var(--text); display: block; font-size: 12.5px; }
+  .notes .g { border-left-color: var(--green); }
+  .notes .a { border-left-color: var(--amber); }
+
+  .matrix { border-top: 1px solid var(--line); padding-top: 28px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--sub); font-weight: 400; }
+  td.k { white-space: nowrap; font-weight: 700; }
+  .rec { color: var(--green); font-weight: 700; }
+  .tbl { overflow-x: auto; }
+  @media (prefers-reduced-motion: no-preference) {
+    .sweep { transform-origin: 50px 50px; animation: sweep 4.5s linear infinite; }
+    @keyframes sweep { to { transform: rotate(360deg); } }
+  }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gSweep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="currentColor" stop-opacity="0"/>
+      <stop offset="1" stop-color="currentColor" stop-opacity=".85"/>
+    </linearGradient>
+
+    <!-- A. レーダー -->
+    <symbol id="mk-radar" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="3"/>
+      <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="2" opacity=".55"/>
+      <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" stroke-width="2" opacity=".35"/>
+      <path class="sweep" d="M50 50 L50 4 A46 46 0 0 1 89.8 27 Z" fill="url(#gSweep)" style="color:var(--green)"/>
+      <circle cx="50" cy="50" r="3.5" fill="currentColor"/>
+      <circle cx="67" cy="36" r="5" fill="var(--green)"/>
+    </symbol>
+
+    <!-- B. ピッチ＋ピン -->
+    <symbol id="mk-pin" viewBox="0 0 100 100">
+      <path d="M26 6 H74 A10 10 0 0 1 84 16 V60 A10 10 0 0 1 74 70 H60 L50 94 L40 70 H26 A10 10 0 0 1 16 60 V16 A10 10 0 0 1 26 6 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+      <line x1="16" y1="38" x2="84" y2="38" stroke="currentColor" stroke-width="3" opacity=".6"/>
+      <rect x="36" y="6" width="28" height="9" fill="none" stroke="currentColor" stroke-width="2.5" opacity=".6"/>
+      <rect x="36" y="61" width="28" height="9" fill="none" stroke="currentColor" stroke-width="2.5" opacity=".6"/>
+      <circle cx="50" cy="38" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
+      <circle cx="50" cy="38" r="3.5" fill="var(--green)"/>
+    </symbol>
+
+    <!-- C. 二つの半円（メイト） -->
+    <symbol id="mk-mate" viewBox="0 0 100 100">
+      <path d="M50 12 A38 38 0 0 0 50 88 L50 76 A26 26 0 0 1 50 24 Z" fill="currentColor" transform="translate(-7 4)"/>
+      <path d="M50 12 A38 38 0 0 1 50 88 L50 76 A26 26 0 0 0 50 24 Z" fill="var(--green)" transform="translate(7 -4)"/>
+    </symbol>
+
+    <!-- D. ロックオン -->
+    <symbol id="mk-lock" viewBox="0 0 100 100">
+      <path d="M10 30 V12 H28 M72 12 H90 V30 M90 70 V88 H72 M28 88 H10 V70" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <polygon points="50,28 68,38.5 68,61.5 50,72 32,61.5 32,38.5" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>
+      <polygon points="50,40 59,45.5 59,55.5 50,61 41,55.5 41,45.5" fill="var(--green)"/>
+      <line x1="50" y1="2" x2="50" y2="14" stroke="var(--green)" stroke-width="3"/>
+      <line x1="50" y1="86" x2="50" y2="98" stroke="var(--green)" stroke-width="3"/>
+      <line x1="2" y1="50" x2="14" y2="50" stroke="var(--green)" stroke-width="3"/>
+      <line x1="86" y1="50" x2="98" y2="50" stroke="var(--green)" stroke-width="3"/>
+    </symbol>
+
+    <!-- E. 阿蘇五岳の稜線 -->
+    <symbol id="mk-aso" viewBox="0 0 100 100">
+      <polyline points="4,70 18,52 28,60 40,34 52,52 62,40 74,58 86,46 96,62" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+      <line x1="4" y1="82" x2="96" y2="82" stroke="currentColor" stroke-width="2.5" opacity=".45" stroke-dasharray="3 5"/>
+      <circle cx="40" cy="34" r="6" fill="var(--green)"/>
+      <circle cx="40" cy="34" r="11" fill="none" stroke="var(--green)" stroke-width="1.5" opacity=".6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <p class="hud g">logo proposals // 2026-09-15</p>
+  <h1>PITCHMATE ロゴ案 5つ</h1>
+  <p class="lead">サイトのレーダーUI（黒地・白・レーダーの緑）に合わせた5方向。それぞれ、黒地／白地の横組み、アプリアイコン3種、ヘッダーに入れたときの見え方を並べています。</p>
+
+  <div class="brief">
+    <div><b>色</b><span>黒 #07090C／白 #EEF2F6／緑 #5DF08A の3色だけ。単色（黒1色・白1色）でも成立する形にしています</span></div>
+    <div><b>書体</b><span>英字ワードマークは Orbitron 700（サイトのロゴと同じ）。和文「ピッチメイト」は BIZ UDPゴシック</span></div>
+    <div><b>最小サイズ</b><span>24px の正方形（下タブ・ファビコン）で潰れないよう、線は2本以下、要素は3つ以下</span></div>
+  </div>
+
+  <!-- A -->
+  <section class="logo">
+    <div class="head"><span class="hud g">A</span><h2>レーダー</h2><span class="en">RADAR</span></div>
+    <p class="concept">サイトの画面そのものを紋章にした案。同心円と掃引の扇、そして<b>ひとつの反応点＝見つかった相手</b>。「探す」というサービスの動作がそのまま形になっています。掃引は動かしても止めても成立します。</p>
+    <div class="stage">
+      <div class="plate dark"><span class="tag">dark</span>
+        <div class="lockup"><svg style="color:var(--text)"><use href="#mk-radar"/></svg><div class="word g"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span></div></div>
+      </div>
+      <div class="plate light"><span class="tag">light</span>
+        <div class="lockup"><svg style="color:var(--light-text)"><use href="#mk-radar"/></svg><div class="word"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span></div></div>
+      </div>
+      <div class="icons">
+        <div class="ic"><span class="tile k" style="width:64px;height:64px"><svg style="color:var(--text)"><use href="#mk-radar"/></svg></span><span>64</span></div>
+        <div class="ic"><span class="tile g" style="width:64px;height:64px"><svg style="color:#061008;--green:#061008"><use href="#mk-radar"/></svg></span><span>64 inv</span></div>
+        <div class="ic"><span class="tile w" style="width:40px;height:40px"><svg style="color:var(--light-text)"><use href="#mk-radar"/></svg></span><span>40</span></div>
+        <div class="ic"><span class="tile k" style="width:24px;height:24px"><svg style="color:var(--text)"><use href="#mk-radar"/></svg></span><span>24</span></div>
+      </div>
+      <div class="header-demo"><svg style="color:var(--text)"><use href="#mk-radar"/></svg><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span><span class="nav"><b>探す</b><span>マイページ</span><span>チーム管理</span></span></div>
+      <div class="notes">
+        <div class="g"><b>強み</b>サイトの世界観と完全に一致。動きをつけられる唯一の案</div>
+        <div class="a"><b>弱み</b>「レーダー」は一般的なモチーフで、サッカーの匂いが薄い</div>
+        <div><b>向く場面</b>アプリアイコン、ローディング、OGP画像</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B -->
+  <section class="logo">
+    <div class="head"><span class="hud g">B</span><h2>ピッチ・ピン</h2><span class="en">PITCH PIN</span></div>
+    <p class="concept">縦に置いたサッカーピッチの輪郭を、そのまま<b>地図のピン</b>にした案。「場所で探す」「会場だけを地図に出す」という設計思想が形になっています。センターサークルの点が緑の反応点。</p>
+    <div class="stage">
+      <div class="plate dark"><span class="tag">dark</span>
+        <div class="lockup"><svg style="color:var(--text)"><use href="#mk-pin"/></svg><div class="word g"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span></div></div>
+      </div>
+      <div class="plate light"><span class="tag">light</span>
+        <div class="lockup"><svg style="color:var(--light-text)"><use href="#mk-pin"/></svg><div class="word"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span></div></div>
+      </div>
+      <div class="icons">
+        <div class="ic"><span class="tile k" style="width:64px;height:64px"><svg style="color:var(--text)"><use href="#mk-pin"/></svg></span><span>64</span></div>
+        <div class="ic"><span class="tile g" style="width:64px;height:64px"><svg style="color:#061008;--green:#061008"><use href="#mk-pin"/></svg></span><span>64 inv</span></div>
+        <div class="ic"><span class="tile w" style="width:40px;height:40px"><svg style="color:var(--light-text)"><use href="#mk-pin"/></svg></span><span>40</span></div>
+        <div class="ic"><span class="tile k" style="width:24px;height:24px"><svg style="color:var(--text)"><use href="#mk-pin"/></svg></span><span>24</span></div>
+      </div>
+      <div class="header-demo"><svg style="color:var(--text)"><use href="#mk-pin"/></svg><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span><span class="nav"><b>探す</b><span>マイページ</span><span>チーム管理</span></span></div>
+      <div class="notes">
+        <div class="g"><b>強み</b>一目でサッカー×地図。説明がいらない</div>
+        <div class="a"><b>弱み</b>ピン型のロゴは地図系サービスに多く、既視感がある</div>
+        <div><b>向く場面</b>地図上の現在地マーカー、名刺</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- C -->
+  <section class="logo">
+    <div class="head"><span class="hud g">C</span><h2>メイト</h2><span class="en">TWO HALVES</span></div>
+    <p class="concept">ボールを縦に割った<b>2つの半円が、少しずれて噛み合う</b>形。白がチーム、緑が相手（対戦相手や助っ人）。「マッチする＝ふたつが合わさってひとつになる」を、いちばん単純な図形で言い切った案。最小サイズに最も強い。</p>
+    <div class="stage">
+      <div class="plate dark"><span class="tag">dark</span>
+        <div class="lockup"><svg style="color:var(--text)"><use href="#mk-mate"/></svg><div class="word g"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span></div></div>
+      </div>
+      <div class="plate light"><span class="tag">light</span>
+        <div class="lockup"><svg style="color:var(--light-text);--green:#1f7a3f"><use href="#mk-mate"/></svg><div class="word"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span></div></div>
+      </div>
+      <div class="icons">
+        <div class="ic"><span class="tile k" style="width:64px;height:64px"><svg style="color:var(--text)"><use href="#mk-mate"/></svg></span><span>64</span></div>
+        <div class="ic"><span class="tile g" style="width:64px;height:64px"><svg style="color:#061008;--green:#eef2f6"><use href="#mk-mate"/></svg></span><span>64 inv</span></div>
+        <div class="ic"><span class="tile w" style="width:40px;height:40px"><svg style="color:var(--light-text);--green:#1f7a3f"><use href="#mk-mate"/></svg></span><span>40</span></div>
+        <div class="ic"><span class="tile k" style="width:24px;height:24px"><svg style="color:var(--text)"><use href="#mk-mate"/></svg></span><span>24</span></div>
+      </div>
+      <div class="header-demo"><svg style="color:var(--text)"><use href="#mk-mate"/></svg><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span><span class="nav"><b>探す</b><span>マイページ</span><span>チーム管理</span></span></div>
+      <div class="notes">
+        <div class="g"><b>強み</b>小さくても潰れない。単色でも意味が残る。「相手が見つかる」を語れる</div>
+        <div class="a"><b>弱み</b>抽象的で、初見ではボールと分からない人もいる</div>
+        <div><b>向く場面</b>ファビコン、SNSアイコン、刺しゅう・ワッペン</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- D -->
+  <section class="logo">
+    <div class="head"><span class="hud g">D</span><h2>ロックオン</h2><span class="en">LOCK-ON</span></div>
+    <p class="concept">画面の四隅にある括弧（照準）の中に、<b>ボールの六角形パネル</b>を捉えた案。「対戦相手を捕捉した」というサイトの「● LOCK」表示とつながります。5案の中でいちばんSFに寄せた、攻めた案。</p>
+    <div class="stage">
+      <div class="plate dark"><span class="tag">dark</span>
+        <div class="lockup"><svg style="color:var(--text)"><use href="#mk-lock"/></svg><div class="word g"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span></div></div>
+      </div>
+      <div class="plate light"><span class="tag">light</span>
+        <div class="lockup"><svg style="color:var(--light-text);--green:#1f7a3f"><use href="#mk-lock"/></svg><div class="word"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span></div></div>
+      </div>
+      <div class="icons">
+        <div class="ic"><span class="tile k" style="width:64px;height:64px"><svg style="color:var(--text)"><use href="#mk-lock"/></svg></span><span>64</span></div>
+        <div class="ic"><span class="tile g" style="width:64px;height:64px"><svg style="color:#061008;--green:#061008"><use href="#mk-lock"/></svg></span><span>64 inv</span></div>
+        <div class="ic"><span class="tile w" style="width:40px;height:40px"><svg style="color:var(--light-text);--green:#1f7a3f"><use href="#mk-lock"/></svg></span><span>40</span></div>
+        <div class="ic"><span class="tile k" style="width:24px;height:24px"><svg style="color:var(--text)"><use href="#mk-lock"/></svg></span><span>24</span></div>
+      </div>
+      <div class="header-demo"><svg style="color:var(--text)"><use href="#mk-lock"/></svg><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span><span class="nav"><b>探す</b><span>マイページ</span><span>チーム管理</span></span></div>
+      <div class="notes">
+        <div class="g"><b>強み</b>個性が最も強い。ゲームやガジェット好きの層に刺さる</div>
+        <div class="a"><b>弱み</b>「狙う・撃つ」の連想がある。線が多く24pxで少し潰れる</div>
+        <div><b>向く場面</b>OGP・バナー、ローディング演出</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- E -->
+  <section class="logo">
+    <div class="head"><span class="hud g">E</span><h2>阿蘇の稜線</h2><span class="en">ASO RIDGE</span></div>
+    <p class="concept">熊本のサービスであることを、<b>阿蘇五岳の稜線</b>で語る案。稜線は同時に「レーダーの波形」にも読め、いちばん高い峰（高岳）に反応点を置いています。県外に広げるときはこの案だけ差し替えが必要です。</p>
+    <div class="stage">
+      <div class="plate dark"><span class="tag">dark</span>
+        <div class="lockup"><svg style="color:var(--text)"><use href="#mk-aso"/></svg><div class="word g"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト ─ 熊本</span></div></div>
+      </div>
+      <div class="plate light"><span class="tag">light</span>
+        <div class="lockup"><svg style="color:var(--light-text);--green:#1f7a3f"><use href="#mk-aso"/></svg><div class="word"><span class="en">PITCHMATE</span><span class="jp">ピッチメイト ─ 熊本</span></div></div>
+      </div>
+      <div class="icons">
+        <div class="ic"><span class="tile k" style="width:64px;height:64px"><svg style="color:var(--text)"><use href="#mk-aso"/></svg></span><span>64</span></div>
+        <div class="ic"><span class="tile g" style="width:64px;height:64px"><svg style="color:#061008;--green:#061008"><use href="#mk-aso"/></svg></span><span>64 inv</span></div>
+        <div class="ic"><span class="tile w" style="width:40px;height:40px"><svg style="color:var(--light-text);--green:#1f7a3f"><use href="#mk-aso"/></svg></span><span>40</span></div>
+        <div class="ic"><span class="tile k" style="width:24px;height:24px"><svg style="color:var(--text)"><use href="#mk-aso"/></svg></span><span>24</span></div>
+      </div>
+      <div class="header-demo"><svg style="color:var(--text)"><use href="#mk-aso"/></svg><span class="en">PITCHMATE</span><span class="jp">ピッチメイト</span><span class="nav"><b>探す</b><span>マイページ</span><span>チーム管理</span></span></div>
+      <div class="notes">
+        <div class="g"><b>強み</b>熊本の人が「うちの」と感じられる。他県の類似サービスと絶対に被らない</div>
+        <div class="a"><b>弱み</b>サッカーの要素がない。県外展開で作り直しになる</div>
+        <div><b>向く場面</b>地元向けチラシ、チーム募集ポスター、Tシャツ</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="matrix">
+    <p class="hud g">comparison</p>
+    <div class="tbl">
+    <table>
+      <thead><tr><th>案</th><th>一目でサッカー</th><th>一目で「探す」</th><th>24pxで潰れない</th><th>単色で成立</th><th>個性</th><th>おすすめ</th></tr></thead>
+      <tbody>
+        <tr><td class="k">A レーダー</td><td>△</td><td>◎</td><td>○</td><td>○</td><td>○</td><td>サイトと一体感を最優先なら</td></tr>
+        <tr><td class="k">B ピッチ・ピン</td><td>◎</td><td>○</td><td>○</td><td>◎</td><td>△</td><td>説明不要を最優先なら</td></tr>
+        <tr><td class="k">C メイト</td><td>△</td><td>○</td><td>◎</td><td>◎</td><td>○</td><td class="rec">総合で推し。アイコンに最も強い</td></tr>
+        <tr><td class="k">D ロックオン</td><td>○</td><td>○</td><td>△</td><td>○</td><td>◎</td><td>SF感を振り切るなら</td></tr>
+        <tr><td class="k">E 阿蘇の稜線</td><td>×</td><td>△</td><td>○</td><td>◎</td><td>◎</td><td>熊本限定で運営し続けるなら</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="lead" style="margin-top:14px">組み合わせも可能です。たとえば <b style="color:var(--text)">アプリアイコン＝C、サイトのヘッダー＝A の掃引つき</b> のように、場面で使い分ける前提で2案を選ぶ手もあります。</p>
+  </section>
+</div>
