@@ -5,7 +5,6 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import SearchMap from "@/components/SearchMap";
 import PostCard from "@/components/PostCard";
-import PostSheet from "@/components/PostSheet";
 import Filters, { defaultFilter, type FilterState } from "@/components/Filters";
 import { fmtDateJa } from "@/components/Calendar";
 import { SITE } from "@/config/site";
@@ -18,8 +17,10 @@ export default function SearchPage() {
   const db = useDB();
   const [filter, setFilter] = useState<FilterState>(defaultFilter);
   const [activeId, setActiveId] = useState<string | null>(null);
-  // 地図のピンを押したときだけ、下からカードを出す
-  const [sheetOpen, setSheetOpen] = useState(false);
+  // 一覧の入れ物。スマホでは横並び（スワイプで流れる）、PC では縦並び
+  const listRef = useRef<HTMLDivElement>(null);
+  const programmatic = useRef(false);
+  const settle = useRef<number | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // 現在地。距離で絞るときと、地図の現在地ボタンを押したときだけ入る
   const [origin, setOrigin] = useState<LatLng | null>(null);
@@ -94,7 +95,6 @@ export default function SearchPage() {
   const changeFilter = useCallback((v: FilterState) => {
     setFilter(v);
     setActiveId(null);
-    setSheetOpen(false);
     if (v.radiusKm && !origin) locate();
     if (!v.radiusKm) setLocError(null);
   }, [origin, locate]);
@@ -102,23 +102,32 @@ export default function SearchPage() {
   // 地図の現在地ボタンで取れた位置も、距離の基準に使う
   const onLocate = useCallback((p: LatLng) => { setOrigin(p); setLocError(null); }, []);
 
-  // ピンを押したら、そのカードを下から出し、リストも送っておく
+  // ピンを押したら、そのカードまで一覧を送る（スマホは横に、PC は縦に）
   const selectFromMap = useCallback((id: string) => {
     setActiveId(id);
-    setSheetOpen(true);
-    cardRefs.current[id]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const el = cardRefs.current[id];
+    if (!el) return;
+    programmatic.current = true;
+    el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    window.setTimeout(() => { programmatic.current = false; }, 500);
   }, []);
-  // シートでスワイプして選択が変わったら、地図とリストも追従させる
-  const activateFromSheet = useCallback((id: string) => {
-    setActiveId(id);
-    cardRefs.current[id]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  // スマホで横にスワイプして止まったら、中央に来たカードを選択中にして地図を寄せる
+  const onListScroll = useCallback(() => {
+    const t = listRef.current;
+    if (!t || programmatic.current) return;
+    if (window.matchMedia("(min-width: 768px)").matches) return; // PC は縦並びなので何もしない
+    if (settle.current) window.clearTimeout(settle.current);
+    settle.current = window.setTimeout(() => {
+      const center = t.scrollLeft + t.clientWidth / 2;
+      let best: string | null = null, bestD = Infinity;
+      for (const [id, el] of Object.entries(cardRefs.current)) {
+        if (!el) continue;
+        const d = Math.abs(el.offsetLeft + el.clientWidth / 2 - center);
+        if (d < bestD) { bestD = d; best = id; }
+      }
+      if (best) setActiveId(best);
+    }, 120);
   }, []);
-  const closeSheet = useCallback(() => setSheetOpen(false), []);
-  const cardProps = useCallback((p: typeof posts[number]) => ({
-    distanceKm: origin ? distanceKm(origin, p.venue) : null,
-    rating: ratingSummary(db, { kind: "team", id: p.teamId }),
-    entries: applicationsForPost(db, p.id).filter((a) => a.status !== "rejected").length,
-  }), [db, origin]);
 
   return (
     <main className="flex h-dvh flex-col">
@@ -133,7 +142,7 @@ export default function SearchPage() {
       {/* スマホは 上=地図 / 下=リスト。PC は 左=リスト / 右=地図 */}
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <section
-          className="relative h-[36vh] shrink-0 md:order-2 md:h-auto md:flex-1"
+          className="relative min-h-[34vh] flex-1 md:order-2 md:min-h-0"
           style={{ borderBottom: "1px solid var(--line)", background: "var(--bg-2)" }}
           aria-label="地図"
         >
@@ -144,13 +153,12 @@ export default function SearchPage() {
         </section>
 
         <section
-          className="flex min-h-0 flex-1 flex-col md:order-1 md:w-[30rem] md:flex-none"
+          className="flex shrink-0 flex-col md:order-1 md:min-h-0 md:w-[30rem] md:flex-1 md:flex-none"
           style={{ background: "var(--bg-2)", borderRight: "1px solid var(--line)" }}
           aria-label="募集一覧"
         >
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-3 md:pb-6">
-            <div className="mb-2 flex flex-wrap items-baseline gap-x-2">
+          <div className="min-h-0 flex-1 pb-[calc(56px+env(safe-area-inset-bottom))] pt-2 md:overflow-y-auto md:px-4 md:pb-6 md:pt-3">
+            <div className="mb-2 flex flex-wrap items-baseline gap-x-2 px-4 md:px-0">
               <span className="hud hud-accent">scan result</span>
               <p className="text-[13.5px] font-bold" style={{ color: "var(--text-sub)" }}>
                 {filter.date && <span style={{ color: "var(--text)" }}>{fmtDateJa(filter.date)} </span>}
@@ -164,7 +172,7 @@ export default function SearchPage() {
             </div>
 
             {posts.length === 0 ? (
-              <div className="card p-6 text-center">
+              <div className="card mx-4 p-6 text-center md:mx-0">
                 <p className="text-[15px] font-bold">
                   {filter.date ? `${fmtDateJa(filter.date)}の募集はありません` : "条件に合う募集がありません"}
                 </p>
@@ -194,9 +202,9 @@ export default function SearchPage() {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
+              <div ref={listRef} className="list-track no-bar" onScroll={onListScroll}>
                 {posts.map((p, i) => (
-                  <div key={p.id} ref={(el) => { cardRefs.current[p.id] = el; }}>
+                  <div key={p.id} className="list-item" data-active={activeId === null || activeId === p.id} ref={(el) => { cardRefs.current[p.id] = el; }}>
                     <PostCard
                       post={p} active={activeId === p.id} onSelect={() => setActiveId(p.id)} index={i + 1}
                       distanceKm={origin ? distanceKm(origin, p.venue) : null}
@@ -211,14 +219,6 @@ export default function SearchPage() {
         </section>
       </div>
       <BottomNav />
-      <PostSheet
-        open={sheetOpen && !!activeId && posts.some((p) => p.id === activeId)}
-        posts={posts}
-        activeId={activeId}
-        onActive={activateFromSheet}
-        onClose={closeSheet}
-        cardProps={cardProps}
-      />
     </main>
   );
 }

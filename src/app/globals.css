@@ -339,52 +339,23 @@ a { color: inherit; }
     }
   }
 
-  /* ---------- 下から出るカード（ボトムシート） ---------- */
-  .sheet-backdrop {
-    position: fixed; inset: 0; z-index: 40;
-    background: rgba(27, 31, 36, .4);
-    opacity: 0; pointer-events: none; transition: opacity .25s;
-  }
-  .sheet-backdrop[data-open="true"] { opacity: 1; pointer-events: auto; }
-  .sheet {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
-    background: var(--bg);
-    border-top: 1px solid var(--primary);
-    box-shadow: 0 -12px 40px rgba(16, 24, 40, .25), 0 0 0 1px rgba(var(--primary-rgb), .2);
-    transform: translateY(105%);
-    transition: transform .3s cubic-bezier(.2, .8, .2, 1);
-    max-height: 85dvh; overflow-y: auto;
-    padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
-  }
-  .sheet[data-open="true"] { transform: translateY(0); }
-  .sheet-inner { max-width: 64rem; margin: 0 auto; }
-  /* 横に並ぶカード。1枚ずつ中央で止まる。両脇に次のカードが少し見える */
-  .sheet-track {
+  /* ---------- 一覧の並び ---------- */
+  /* スマホ: 横一列。スワイプで1枚ずつ中央に止まる。両脇に次のカードが少し見える */
+  .list-track {
     position: relative; /* 子の offsetLeft をトラック基準にする（中央合わせの計算用） */
     display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory; scroll-padding: 0 6vw;
-    padding: 4px 6vw 6px; margin: 0 -16px;
-    cursor: grab; user-select: none;
+    scroll-snap-type: x mandatory; padding: 4px 6vw 8px;
   }
-  .sheet-track:active { cursor: grabbing; }
-  .sheet-item {
-    flex: 0 0 88vw; max-width: 40rem; scroll-snap-align: center;
-    opacity: .55; transform: scale(.97); transition: opacity .2s, transform .2s;
+  .list-item { flex: 0 0 88vw; scroll-snap-align: center; transition: opacity .2s, transform .2s; }
+  .list-item[data-active="false"] { opacity: .7; transform: scale(.98); }
+  /* PC: 縦一列 */
+  @media (min-width: 768px) {
+    .list-track { display: flex; flex-direction: column; gap: 12px; overflow: visible; scroll-snap-type: none; padding: 0; }
+    .list-item { flex: none; width: auto; }
+    .list-item[data-active="false"] { opacity: 1; transform: none; }
   }
-  .sheet-item[data-active="true"] { opacity: 1; transform: none; }
-  @media (min-width: 640px) { .sheet-item { flex-basis: 40rem; } .sheet-track { padding-left: calc(50% - 20rem); padding-right: calc(50% - 20rem); scroll-padding: 0; } }
-  .sheet-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); transition: background .2s, transform .2s; }
-  .sheet-dot[data-on="true"] { background: var(--primary); transform: scale(1.4); box-shadow: 0 0 6px var(--primary); }
-  .sheet-handle {
-    display: inline-block; width: 36px; height: 4px; border-radius: 2px;
-    background: var(--line-2); margin-right: 8px;
-  }
-  /* 上端に目盛り。計器の窓らしく */
-  .sheet::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px;
-    background: repeating-linear-gradient(90deg, rgba(var(--primary-rgb), .5) 0 1px, transparent 1px 16px);
-    opacity: .6; pointer-events: none;
-  }
+  .list-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); transition: background .2s, transform .2s; }
+  .list-dot[data-on="true"] { background: var(--primary); transform: scale(1.4); }
 
   /* 区切り線に目盛りを刻む */
   .ticks {
