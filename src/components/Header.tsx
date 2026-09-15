@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SITE } from "@/config/site";
+import Logo from "@/components/Logo";
 import { AUTH_MODE, getProfile, setSession, signOut, teamsRunBy, useDB, useSessionId } from "@/lib/store";
 
 /**
@@ -30,7 +31,7 @@ export default function Header({ subtitle }: { subtitle?: string }) {
       style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}
     >
       <Link href="/" className="flex min-w-0 items-center gap-2.5 no-underline" style={{ color: "var(--text)" }}>
-        <span className="blink shrink-0" aria-hidden />
+        <Logo size={30} className="shrink-0" />
         <span className="min-w-0">
           <span className="display block whitespace-nowrap text-[16px] font-bold leading-none" style={{ color: "var(--primary)" }}>
             {SITE.nameEn}

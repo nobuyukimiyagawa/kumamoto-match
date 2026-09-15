@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- PITCHMATE mark B: ピッチ・ピン。線=currentColor、反応点=#5DF08A -->
+  <g fill="none" stroke="currentColor" stroke-linejoin="round">
+    <path d="M26 6 H74 A10 10 0 0 1 84 16 V60 A10 10 0 0 1 74 70 H60 L50 94 L40 70 H26 A10 10 0 0 1 16 60 V16 A10 10 0 0 1 26 6 Z" stroke-width="4"/>
+    <line x1="16" y1="38" x2="84" y2="38" stroke-width="3" opacity=".6"/>
+    <rect x="36" y="6" width="28" height="9" stroke-width="2.5" opacity=".6"/>
+    <rect x="36" y="61" width="28" height="9" stroke-width="2.5" opacity=".6"/>
+    <circle cx="50" cy="38" r="9" stroke-width="3"/>
+  </g>
+  <circle cx="50" cy="38" r="3.5" fill="#5DF08A"/>
+</svg>

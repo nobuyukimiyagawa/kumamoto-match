@@ -140,3 +140,10 @@ Supabase に移すときは store.ts の関数の中身だけ差し替える（�
 - カードは四隅に短い括弧。選択中は緑の枠と発光
 - 画面全体に薄いグリッドと走査線。`prefers-reduced-motion` では掃引を止める
 - 種別の色はそのまま（トレマ＝シアン、助っ人＝アンバー）。Google／LINE のボタンは各社の色を維持
+
+## ロゴ（2026-09-15 決定: 案B「ピッチ・ピン」）
+
+縦のサッカーピッチの輪郭が、そのまま地図のピンになる形。センターサークルの点だけレーダーの緑。
+- 正本 SVG: `docs/logo/pitchmate-mark.svg`（線は currentColor）
+- サイトでは `src/components/Logo.tsx`（ヘッダー）、`src/app/icon.svg`／`favicon.ico`／`apple-icon.png`（黒タイル）
+- 検討した5案は `docs/logo/index.html`
