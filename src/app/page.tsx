@@ -9,7 +9,7 @@ import Filters, { defaultFilter, type FilterState } from "@/components/Filters";
 import { fmtDateJa } from "@/components/Calendar";
 import { SITE } from "@/config/site";
 import { distanceKm } from "@/lib/geo";
-import { applicationsForPost, listPosts, ratingSummary, useDB } from "@/lib/store";
+import { applicationsForPost, isTeamPlanActive, listPosts, ratingSummary, useDB } from "@/lib/store";
 
 export type LatLng = { lat: number; lng: number };
 
@@ -39,7 +39,11 @@ export default function SearchPage() {
         if (distanceKm(origin, p.venue) > filter.radiusKm) return false;
       }
       return true;
-    }).sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+    // 日付 → 同じ日ならチームプランのチームを先に → 時間
+    }).sort((a, b) =>
+      a.date.localeCompare(b.date)
+      || Number(isTeamPlanActive(b.team)) - Number(isTeamPlanActive(a.team))
+      || a.startTime.localeCompare(b.startTime));
   }, [db, filter.kind, filter.level, filter.radiusKm, origin]);
 
   const byCity = useMemo(() => base.filter((p) => filter.city === "all" || p.venue.city === filter.city), [base, filter.city]);

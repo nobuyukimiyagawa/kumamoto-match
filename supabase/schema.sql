@@ -26,8 +26,12 @@ create table teams (
   level      play_level not null default 'casual',
   note       text,
   owner_id   uuid not null references profiles(id),
-  -- 課金はチーム単位。無料開始なので当面 null
-  billing_customer_id text,
+  -- 課金はチーム単位（Stripe の月額サブスク）。plan は Webhook（service role）だけが書き換える
+  plan       text not null default 'free' check (plan in ('free', 'team')),
+  plan_until timestamptz,             -- 現在の期間の終わり（解約後もここまでは有効）
+  stripe_customer_id     text,
+  stripe_subscription_id text,
+  billing_customer_id text,           -- 旧。未使用
   created_at timestamptz default now()
 );
 

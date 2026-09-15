@@ -41,6 +41,7 @@ const toProfile = (r: Row): Profile => ({
 const toTeam = (r: Row): Team => ({
   id: String(r.id), name: String(r.name), city: String(r.city ?? ""), level: r.level as Level,
   note: s(r.note), ownerId: String(r.owner_id),
+  plan: (r.plan as Team["plan"]) ?? "free", planUntil: s(r.plan_until),
 });
 const toMember = (r: Row): TeamMember => ({
   teamId: String(r.team_id), profileId: String(r.profile_id), role: r.role as TeamMember["role"],
@@ -139,6 +140,34 @@ function fail(e: { message: string } | null): never | void {
   if (e) throw new Error(e.message);
 }
 
+/**
+ * 支払いの Edge Function を呼び、Stripe の画面へ移動する。
+ * カード情報はサイトを通らない（Stripe がホストする画面で入力）。
+ */
+async function callBilling(path: "" | "/portal", teamId: string): Promise<{ error?: string }> {
+  const { data } = await sb().auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return { error: "ログインが必要です。" };
+  const back = window.location.origin + (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + "/team/";
+  const res = await fetch(`${URL}/functions/v1/stripe-checkout${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, apikey: KEY },
+    body: JSON.stringify({ teamId, return: back }),
+  });
+  const j = await res.json().catch(() => ({})) as { url?: string; error?: string };
+  if (!res.ok || !j.url) {
+    const msg: Record<string, string> = {
+      stripe_not_configured: "お支払いの準備がまだできていません。",
+      forbidden: "チームの運営者だけが操作できます。",
+      already_subscribed: "このチームはすでに加入済みです。",
+      unauthorized: "ログインし直してください。",
+    };
+    return { error: msg[j.error ?? ""] ?? "お支払い画面を開けませんでした。" + (j.error ? `（${j.error}）` : "") };
+  }
+  window.location.assign(j.url);
+  return {};
+}
+
 /** サイトのトップ（basePath 込み、末尾スラッシュあり）。ログイン後の戻り先に使う */
 function siteUrl() {
   return window.location.origin + (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + "/";
@@ -189,6 +218,10 @@ export const supabaseBackend: Backend = {
   },
   getAuthMeta() { return authMeta; },
   async signOut() { await sb().auth.signOut(); },
+
+  // ---------- 課金（Stripe。Edge Function 経由） ----------
+  async startCheckout(teamId) { return callBilling("", teamId); },
+  async openBillingPortal(teamId) { return callBilling("/portal", teamId); },
 
   async upsertProfile(id, input) {
     const { error } = await sb().from("profiles").upsert({

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { createPost, teamsRunBy, useDB, useSessionId } from "@/lib/store";
+import { createPost, isPast, isTeamPlanActive, listPosts, teamsRunBy, useDB, useSessionId } from "@/lib/store";
+import { PLAN } from "@/config/plan";
 import { KIND_LABEL, LEVEL_LABEL, POSITION_LABEL, VENUE_STATUS_LABEL, type PostKind, type Level, type Position, type VenueStatus } from "@/types";
 import { SITE } from "@/config/site";
 
@@ -19,6 +20,10 @@ export default function NewPostPage() {
 
   const [kind, setKind] = useState<PostKind>("training_match");
   const [teamId, setTeamId] = useState("");
+  // 無料プランの同時掲載数（PLAN.enforceFreeLimit が true のときだけ効かせる）
+  const curTeam = myTeams.find((t) => t.id === (teamId || myTeams[0]?.id));
+  const openCount = curTeam ? listPosts(db).filter((p) => p.teamId === curTeam.id && p.status !== "closed" && !isPast(p)).length : 0;
+  const overLimit = !!curTeam && PLAN.enforceFreeLimit && !isTeamPlanActive(curTeam) && openCount >= PLAN.freePostLimit;
   const [venueId, setVenueId] = useState("");
   const [date, setDate] = useState("");
   const [start, setStart] = useState("19:00");
@@ -64,6 +69,7 @@ export default function NewPostPage() {
               e.preventDefault();
               if (helper && positions.length === 0) { setError("募集するポジションを1つ以上選んでください。"); return; }
               if (start >= end) { setError("終了時刻は開始時刻より後にしてください。"); return; }
+              if (overLimit) { setError(`無料プランで同時に出せる募集は${PLAN.freePostLimit}件までです。${PLAN.name}に加入すると無制限になります。`); return; }
               setBusy(true); setError(null);
               try {
                 const post = await createPost({
@@ -102,6 +108,12 @@ export default function NewPostPage() {
               <select id="team" className="field" value={teamId || myTeams[0].id} onChange={(e) => setTeamId(e.target.value)} required>
                 {myTeams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
+              {overLimit && (
+                <p className="mt-2 text-[13.5px] font-bold" style={{ color: "var(--helper)" }}>
+                  無料プランで同時に出せる募集は{PLAN.freePostLimit}件までです（いま{openCount}件）。
+                  <Link href="/team/" className="ml-1 underline" style={{ color: "var(--primary)" }}>{PLAN.name}に加入する</Link>
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

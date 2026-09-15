@@ -29,12 +29,12 @@ export const PROFILES: Profile[] = [
 ];
 
 export const TEAMS: Team[] = [
-  { id: "t1", name: "FC VALIANT",     city: "熊本市中央区", level: "casual",      ownerId: "u1", note: "20〜40代中心。月2回の練習と月1回の対外試合。" },
-  { id: "t2", name: "菊陽キャロッツ",  city: "菊池郡菊陽町", level: "casual",      ownerId: "u2", note: "菊陽町のエンジョイチーム。初心者も歓迎。" },
-  { id: "t3", name: "熊本SSS",        city: "熊本市東区",   level: "competitive", ownerId: "u5", note: "県リーグ2部。上を目指しています。" },
-  { id: "t4", name: "スティンガー熊本", city: "合志市",      level: "casual",      ownerId: "u2" },
-  { id: "t5", name: "八代フェニックス", city: "八代市",      level: "beginner",    ownerId: "u5" },
-  { id: "t6", name: "天草マリナーズ",  city: "天草市",       level: "casual",      ownerId: "u5" },
+  { id: "t1", name: "FC VALIANT",     city: "熊本市中央区", level: "casual",      ownerId: "u1", plan: "team", note: "20〜40代中心。月2回の練習と月1回の対外試合。" },
+  { id: "t2", name: "菊陽キャロッツ",  city: "菊池郡菊陽町", level: "casual",      ownerId: "u2", plan: "free", note: "菊陽町のエンジョイチーム。初心者も歓迎。" },
+  { id: "t3", name: "熊本SSS",        city: "熊本市東区",   level: "competitive", ownerId: "u5", plan: "free", note: "県リーグ2部。上を目指しています。" },
+  { id: "t4", name: "スティンガー熊本", city: "合志市",      level: "casual",      ownerId: "u2", plan: "free" },
+  { id: "t5", name: "八代フェニックス", city: "八代市",      level: "beginner",    ownerId: "u5", plan: "free" },
+  { id: "t6", name: "天草マリナーズ",  city: "天草市",       level: "casual",      ownerId: "u5", plan: "free" },
 ];
 
 export const MEMBERS: TeamMember[] = [

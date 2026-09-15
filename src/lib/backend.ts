@@ -68,6 +68,11 @@ export interface Backend {
   getAuthMeta(): { name?: string; email?: string } | null;
   signOut(): Promise<void>;
 
+  /** supabase: チームプランの支払い画面（Stripe Checkout）へ移動する */
+  startCheckout?(teamId: string): Promise<{ error?: string }>;
+  /** supabase: 支払い管理（カード変更・解約。Stripe Billing Portal）へ移動する */
+  openBillingPortal?(teamId: string): Promise<{ error?: string }>;
+
   // 更新
   upsertProfile(id: string, input: ProfileInput): Promise<void>;
   createTeam(input: NewTeam): Promise<Team>;

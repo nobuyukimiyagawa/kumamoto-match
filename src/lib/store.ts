@@ -55,6 +55,17 @@ export function finishLineLogin(tokenHash: string) {
 }
 export function getAuthMeta() { return backend.getAuthMeta(); }
 export function signOut() { return backend.signOut(); }
+export async function startCheckout(teamId: string) {
+  return backend.startCheckout ? backend.startCheckout(teamId) : { error: "デモモードでは支払いは使えません。" };
+}
+export async function openBillingPortal(teamId: string) {
+  return backend.openBillingPortal ? backend.openBillingPortal(teamId) : { error: "デモモードでは支払いは使えません。" };
+}
+/** チームプランが有効か（解約後も期限までは有効） */
+export function isTeamPlanActive(team: Team): boolean {
+  if (team.plan !== "team") return false;
+  return !team.planUntil || new Date(team.planUntil).getTime() > Date.now();
+}
 export function resetDB() { backend.reset?.(); }
 
 // ---------- 更新（すべて Promise） ----------

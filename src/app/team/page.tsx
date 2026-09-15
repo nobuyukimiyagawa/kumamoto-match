@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import PlanCard from "@/components/PlanCard";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { Stars } from "@/components/Stars";
@@ -15,6 +17,12 @@ type Tab = "posts" | "rate";
 
 /** チーム管理＝募集を出す側の画面。個人（助っ人）としての画面は /me/ */
 export default function TeamManagePage() {
+  return <Suspense fallback={null}><TeamManage /></Suspense>;
+}
+
+function TeamManage() {
+  const params = useSearchParams();
+  const justPaid = params.get("paid") as "1" | "0" | null;
   const db = useDB();
   const sid = useSessionId();
   const me = sid ? getProfile(db, sid) : null;
@@ -119,6 +127,9 @@ export default function TeamManagePage() {
             <Link href="/post/new/" className="btn btn-primary" style={{ minHeight: 36, padding: "0 12px", fontSize: 13.5 }}>＋ 募集する</Link>
           </div>
         </div>
+
+        {/* チームプラン */}
+        <PlanCard team={team} justPaid={justPaid} />
 
         {/* 個人としての画面への入口 */}
         <p className="mt-2 text-right text-[13px]" style={{ color: "var(--text-sub)" }}>

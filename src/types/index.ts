@@ -15,6 +15,8 @@ export type Venue = {
   lng: number;
 };
 
+export type TeamPlan = "free" | "team";
+
 export type Team = {
   id: string;
   name: string;
@@ -22,6 +24,10 @@ export type Team = {
   level: Level;
   note?: string;
   ownerId: string;
+  /** 有料プラン。Stripe の Webhook だけが書き換える */
+  plan: TeamPlan;
+  /** 現在の期間の終わり（ISO）。解約後もここまでは有効 */
+  planUntil?: string;
 };
 
 /** 個人。住所は持たない（市区町村まで） */

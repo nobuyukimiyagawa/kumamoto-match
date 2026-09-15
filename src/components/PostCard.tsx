@@ -4,7 +4,7 @@ import Link from "next/link";
 import { LEVEL_LABEL, KIND_LABEL, POSITION_LABEL, VENUE_STATUS_LABEL } from "@/types";
 import { fmtKm } from "@/lib/geo";
 import { Stars } from "@/components/Stars";
-import type { PostView } from "@/lib/store";
+import { isTeamPlanActive, type PostView } from "@/lib/store";
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -65,6 +65,7 @@ export default function PostCard({
         <span className={`badge ${helper ? "badge-helper" : "badge-match"}`}>{KIND_LABEL[post.kind]}</span>
         <span className="badge badge-gray">{LEVEL_LABEL[post.level]}</span>
         <VenueStatusBadge post={post} />
+        {isTeamPlanActive(post.team) && <span className="badge badge-ok" title="チームプラン加入チーム">★ PLAN</span>}
         {post.status === "filled" && <span className="badge badge-gray">成立</span>}
         {active && (
           <span className="hud hud-accent ml-auto" style={{ fontWeight: 700 }}>

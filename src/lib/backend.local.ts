@@ -64,7 +64,7 @@ export const localBackend: Backend = {
   },
   async createTeam(input) {
     const db = read();
-    const team: Team = { id: "t" + uid(), ...input };
+    const team: Team = { id: "t" + uid(), plan: "free", ...input };
     write({
       ...db,
       teams: [...db.teams, team],
