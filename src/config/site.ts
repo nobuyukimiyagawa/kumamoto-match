@@ -6,6 +6,9 @@ export const SITE = {
   area: "熊本県",
 } as const;
 
+// 公開先。OGP の絶対 URL の基準（GitHub Pages で開かれても画像は Netlify のものを指す）
+export const SITE_ORIGIN = "https://pitchmate-kumamoto.netlify.app";
+
 // 熊本県のおおよその中心（地図の初期表示）
 export const MAP_DEFAULT = {
   center: { lat: 32.7898, lng: 130.7417 }, // 熊本市中央区あたり
