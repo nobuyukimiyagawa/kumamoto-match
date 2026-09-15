@@ -46,7 +46,7 @@ export default function NewPostPage() {
           <div className="card mt-5 p-5 text-center">
             <p className="font-bold">募集するにはログインが必要です</p>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
-              <Link href="/signup/" className="btn btn-primary">新規登録（無料）</Link>
+              <Link href="/signup/team/" className="btn btn-primary">チームとして登録（無料）</Link>
               <Link href="/login/" className="btn btn-ghost">ログイン</Link>
             </div>
           </div>

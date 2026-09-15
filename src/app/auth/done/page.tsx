@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { takeAuthIntent } from "@/components/AuthButtons";
-import { getProfile, useDB, useSessionId } from "@/lib/store";
+import { getProfile, teamsRunBy, useDB, useSessionId } from "@/lib/store";
 
 /**
  * 認証（Google / LINE / メールリンク）から戻ってくる場所。
  * プロフィールの有無と「ログインのつもりか登録のつもりか」で行き先を分ける。
  *   プロフィールあり + 新規登録 → 「登録済みです」と伝えてマイページ
- *   プロフィールあり + ログイン → マイページ
- *   プロフィールなし → ようこそ（プロフィール登録）
+ *   プロフィールあり + ログイン → チームを運営していればチーム管理、そうでなければマイページ
+ *   プロフィールなし → ようこそ（種類に応じた登録手順）
  */
 export default function AuthDonePage() {
   const db = useDB();
@@ -31,12 +31,13 @@ export default function AuthDonePage() {
     const intent = takeAuthIntent();
     const me = getProfile(db, sid);
     if (!me) { router.replace("/welcome/"); return; }
+    const home = teamsRunBy(db, sid).length > 0 ? "/team/" : "/me/";
     if (intent === "signup") {
       // 描画中の setState を避けるため、次のティックで出す
-      window.setTimeout(() => setMsg("このアカウントはすでに登録済みです。マイページに移動します。"), 0);
-      window.setTimeout(() => router.replace("/me/"), 1500);
+      window.setTimeout(() => setMsg("このアカウントはすでに登録済みです。管理画面に移動します。"), 0);
+      window.setTimeout(() => router.replace(home), 1500);
     } else {
-      router.replace("/me/");
+      router.replace(home);
     }
   }, [sid, db, router]);
 

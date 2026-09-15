@@ -15,8 +15,10 @@ export default function BottomNav() {
   const items = [
     { href: "/", label: "探す", icon: <IconRadar /> },
     ...(canPost ? [{ href: "/post/new/", label: "募集する", icon: <IconPlus /> }] : []),
+    ...(canPost ? [{ href: "/team/", label: "チーム", icon: <IconTeam /> }] : []),
     { href: "/me/", label: "マイページ", icon: <IconUser /> },
   ];
+  // /team/new/ や /team/edit/ は「チーム」タブ、/post/new/ は「募集する」タブを点灯させる
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
   return (
@@ -52,6 +54,14 @@ function IconRadar() {
 }
 function IconPlus() {
   return <svg {...svg}><path d="M12 5v14M5 12h14" /></svg>;
+}
+function IconTeam() {
+  return (
+    <svg {...svg}>
+      <circle cx="9" cy="8" r="3.2" /><circle cx="17" cy="9" r="2.6" />
+      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" /><path d="M15.5 14.5c2.8.3 5 2.6 5 5.5" />
+    </svg>
+  );
 }
 function IconUser() {
   return <svg {...svg}><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></svg>;

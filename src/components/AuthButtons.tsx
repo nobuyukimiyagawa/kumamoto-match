@@ -8,6 +8,20 @@ import { AUTH_MODE, signInWithGoogle, signInWithLine, signInWithPassword, signUp
 export type AuthIntent = "login" | "signup";
 const INTENT_KEY = "pitchmate-auth-intent";
 
+/** 登録の種類。チーム（募集を出す側）か、個人（助っ人でエントリーする側）か */
+export type SignupRole = "team" | "player";
+const ROLE_KEY = "pitchmate-signup-role";
+export function setSignupRole(r: SignupRole) {
+  try { localStorage.setItem(ROLE_KEY, r); } catch { /* ignore */ }
+}
+/** 読むだけ。ようこそ画面が完了するまで消さない（メール確認で戻ってきたときにも使うため） */
+export function peekSignupRole(): SignupRole | null {
+  try { return localStorage.getItem(ROLE_KEY) as SignupRole | null; } catch { return null; }
+}
+export function clearSignupRole() {
+  try { localStorage.removeItem(ROLE_KEY); } catch { /* ignore */ }
+}
+
 /** 認証から戻ったときに「ログインのつもりだったか、新規登録のつもりだったか」を知るために残す */
 export function setAuthIntent(i: AuthIntent) {
   try { localStorage.setItem(INTENT_KEY, i); } catch { /* ignore */ }
@@ -39,7 +53,7 @@ const MIN_PW = 8;
  * Google と LINE はパスワード無し（各社の画面で許可するだけ）。
  * メールは新規登録時に確認メールが届き、リンクを押すと有効になる。
  */
-export default function AuthButtons({ intent }: { intent: AuthIntent }) {
+export default function AuthButtons({ intent, role }: { intent: AuthIntent; role?: SignupRole }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -49,6 +63,8 @@ export default function AuthButtons({ intent }: { intent: AuthIntent }) {
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const verb = intent === "signup" ? "で登録" : "でログイン";
+  // 登録の種類を先に控えておく。認証から戻ったあと、ようこそ画面がこれを見て手順を変える
+  const mark = () => { setAuthIntent(intent); if (role) setSignupRole(role); };
 
   if (AUTH_MODE === "local") {
     return (
@@ -80,7 +96,7 @@ export default function AuthButtons({ intent }: { intent: AuthIntent }) {
           type="button" className="btn w-full"
           style={{ minHeight: 50, fontSize: 16, background: "#fff", border: "1px solid #fff", color: "#1b1f24" }}
           onClick={async () => {
-            setError(null); setAuthIntent(intent);
+            setError(null); mark();
             const r = await signInWithGoogle();
             if (r.error) setError(jpError(r.error));
           }}
@@ -90,7 +106,7 @@ export default function AuthButtons({ intent }: { intent: AuthIntent }) {
         <button
           type="button" className="btn w-full"
           style={{ minHeight: 50, fontSize: 16, background: "#06C755", color: "#fff" }}
-          onClick={() => { setAuthIntent(intent); signInWithLine(); }}
+          onClick={() => { mark(); signInWithLine(); }}
         >
           LINE{verb}
         </button>
@@ -105,7 +121,7 @@ export default function AuthButtons({ intent }: { intent: AuthIntent }) {
               if (pw.length < MIN_PW) { setError(`パスワードは${MIN_PW}文字以上にしてください。`); return; }
               if (pw !== pw2) { setError("パスワード（確認用）が一致しません。"); return; }
             }
-            setBusy(true); setAuthIntent(intent);
+            setBusy(true); mark();
             const r = intent === "signup"
               ? await signUpWithPassword(email.trim(), pw)
               : await signInWithPassword(email.trim(), pw);

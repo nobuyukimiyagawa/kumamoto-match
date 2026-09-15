@@ -4,26 +4,23 @@ import { useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import ApplicantRow from "@/components/ApplicantRow";
-import { fmtDate } from "@/components/PostCard";
-import { StarInput, Stars } from "@/components/Stars";
+import { Stars } from "@/components/Stars";
 import ProfileForm from "@/components/ProfileForm";
+import { MyEntriesPanel, RatePanel } from "@/components/ManagePanels";
 import {
-  AUTH_MODE, addRating, applicationsForPost, cancelApplication, closePost, getPost, getProfile, isPast,
-  listPosts, pendingRatingsFor, ratingSummary, resetDB, teamsRunBy, useDB, useSessionId,
-  type PendingRating, type PostView,
+  AUTH_MODE, getPost, getProfile, pendingRatingsFor, ratingSummary, resetDB, teamsRunBy, useDB, useSessionId,
 } from "@/lib/store";
-import { APP_STATUS_LABEL, KIND_LABEL, POSITION_LABEL, type Application } from "@/types";
+import { POSITION_LABEL } from "@/types";
 
-type Tab = "team" | "me" | "rate";
+type Tab = "entries" | "rate";
 
+/** マイページ＝個人（助っ人）としての画面。チームの運営は /team/ に分けてある */
 export default function MyPage() {
   const db = useDB();
   const sid = useSessionId();
   const me = sid ? getProfile(db, sid) : null;
   const myTeams = sid ? teamsRunBy(db, sid) : [];
-  const runsTeam = myTeams.length > 0;
-  const [tab, setTab] = useState<Tab | null>(null);
+  const [tab, setTab] = useState<Tab>("entries");
   const [editing, setEditing] = useState(false);
 
   if (!db.ready) return <main className="min-h-dvh"><Header /></main>;
@@ -58,14 +55,15 @@ export default function MyPage() {
         <div className="mx-auto max-w-2xl px-4 pt-8 text-center">
           <p className="text-[16px] font-bold">初めてのようです</p>
           <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>プロフィールを登録すると、募集やエントリーができるようになります。</p>
-          <Link href="/welcome/" className="btn btn-primary mt-4">プロフィールを登録する</Link>
+          <Link href="/welcome/" className="btn btn-primary mt-4">登録を続ける</Link>
         </div>
         <BottomNav />
       </main>
     );
   }
 
-  const pendingRatings = pendingRatingsFor(db, me.id);
+  // 個人としての評価だけ（チームとしての評価はチーム管理側）
+  const pendingRatings = pendingRatingsFor(db, me.id).filter((r) => r.from.kind === "profile");
   const myRating = ratingSummary(db, { kind: "profile", id: me.id });
 
   // 自分（個人）のエントリー
@@ -75,20 +73,8 @@ export default function MyPage() {
     .filter((x) => x.post)
     .sort((x, y) => y.post.date.localeCompare(x.post.date));
 
-  // 運営チームの募集と、運営チームが出した対戦エントリー
-  const teamIds = myTeams.map((t) => t.id);
-  const teamPosts = listPosts(db).filter((p) => teamIds.includes(p.teamId)).sort((a, b) => b.date.localeCompare(a.date));
-  const teamApps = db.applications
-    .filter((a) => a.applicantTeamId && teamIds.includes(a.applicantTeamId) && a.status !== "cancelled")
-    .map((a) => ({ a, post: getPost(db, a.postId)! }))
-    .filter((x) => x.post)
-    .sort((x, y) => y.post.date.localeCompare(x.post.date));
-  const pendingCount = teamPosts.reduce((n, p) => n + applicationsForPost(db, p.id).filter((a) => a.status === "pending").length, 0);
-
-  const current: Tab = tab ?? (runsTeam ? "team" : "me");
   const tabs: { id: Tab; label: string; badge?: number }[] = [
-    ...(runsTeam ? [{ id: "team" as Tab, label: "チームの管理", badge: pendingCount }] : []),
-    { id: "me", label: "自分のエントリー" },
+    { id: "entries", label: "助っ人エントリー", badge: myApps.filter((x) => x.a.status === "pending").length },
     { id: "rate", label: "評価する", badge: pendingRatings.length },
   ];
 
@@ -96,6 +82,8 @@ export default function MyPage() {
     <main className="min-h-dvh pb-24 sm:pb-10">
       <Header />
       <div className="mx-auto max-w-3xl px-4 pt-4">
+        <p className="hud mb-2" style={{ color: "var(--helper)" }}>player // マイページ</p>
+
         {/* 自分のプロフィール */}
         {editing ? (
           <ProfileForm id={me.id} initial={me} onDone={() => setEditing(false)} onCancel={() => setEditing(false)} />
@@ -113,40 +101,43 @@ export default function MyPage() {
             <Stars value={myRating.avg} count={myRating.count} />
           </div>
           <div className="ml-auto flex flex-wrap gap-2">
-            {myTeams.map((t) => {
-              const r = ratingSummary(db, { kind: "team", id: t.id });
-              return (
-                <Link key={t.id} href={`/team/edit/?id=${t.id}`} className="badge badge-match" title="チームを編集">
-                  {t.name}
-                  <span className="ml-1.5"><Stars value={r.avg} count={r.count} size={12} showNumber={false} /></span>
-                  <span className="ml-1.5" aria-hidden>✎</span>
-                </Link>
-              );
-            })}
             <button type="button" className="btn btn-ghost" style={{ minHeight: 36, padding: "0 12px", fontSize: 13.5 }} onClick={() => setEditing(true)}>
               プロフィールを編集
             </button>
-            <Link href="/team/new/" className="btn btn-ghost" style={{ minHeight: 36, padding: "0 12px", fontSize: 13.5 }}>
-              ＋ チームを作る
-            </Link>
           </div>
         </div>
         )}
 
+        {/* チーム運営への入口 */}
+        <div className="card mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 p-4" style={{ borderColor: "rgba(125,211,252,.35)" }}>
+          <p className="hud" style={{ color: "var(--match)" }}>team</p>
+          {myTeams.length > 0 ? (
+            <>
+              <p className="text-[14px]">
+                運営中: {myTeams.map((t) => <b key={t.id} className="mr-2">{t.name}</b>)}
+              </p>
+              <Link href="/team/" className="btn btn-ghost ml-auto" style={{ minHeight: 36, padding: "0 12px", fontSize: 13.5 }}>
+                チーム管理へ →
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="text-[14px]" style={{ color: "var(--text-sub)" }}>チームを運営する方は、チームを作ると募集を出せます。</p>
+              <Link href="/team/new/" className="btn btn-ghost ml-auto" style={{ minHeight: 36, padding: "0 12px", fontSize: 13.5 }}>
+                ＋ チームを作る
+              </Link>
+            </>
+          )}
+        </div>
+
         {/* タブ */}
         <div className="no-bar mt-4 flex gap-2 overflow-x-auto" role="tablist">
           {tabs.map((t) => (
-            <button
-              key={t.id} type="button" role="tab" aria-selected={current === t.id}
-              className="chip" data-on={current === t.id}
-              onClick={() => setTab(t.id)}
-            >
+            <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className="chip" data-on={tab === t.id} onClick={() => setTab(t.id)}>
               {t.label}
               {t.badge ? (
-                <span
-                  className="num ml-1.5 rounded-full px-1.5 text-[12px]"
-                  style={{ background: current === t.id ? "#061008" : "var(--helper)", color: current === t.id ? "var(--primary)" : "#061008" }}
-                >
+                <span className="num ml-1.5 rounded-full px-1.5 text-[12px]"
+                  style={{ background: tab === t.id ? "#061008" : "var(--helper)", color: tab === t.id ? "var(--primary)" : "#061008" }}>
                   {t.badge}
                 </span>
               ) : null}
@@ -154,11 +145,8 @@ export default function MyPage() {
           ))}
         </div>
 
-        {current === "team" && runsTeam && (
-          <TeamPanel posts={teamPosts} apps={teamApps} db={db} />
-        )}
-        {current === "me" && <MyEntriesPanel items={myApps} />}
-        {current === "rate" && <RatePanel items={pendingRatings} />}
+        {tab === "entries" && <MyEntriesPanel items={myApps} />}
+        {tab === "rate" && <RatePanel items={pendingRatings} />}
 
         {AUTH_MODE === "local" && (
           <p className="mt-10 text-center text-[12.5px]" style={{ color: "var(--text-sub)" }}>
@@ -171,215 +159,5 @@ export default function MyPage() {
       </div>
       <BottomNav />
     </main>
-  );
-}
-
-function StatusBadge({ s }: { s: Application["status"] }) {
-  return (
-    <span
-      className="badge"
-      style={{
-        background: s === "approved" ? "var(--primary-bg)" : s === "pending" ? "var(--helper-bg)" : "var(--surface-2)",
-        color: s === "approved" ? "var(--primary)" : s === "pending" ? "var(--helper)" : "var(--text-sub)",
-      }}
-    >
-      {APP_STATUS_LABEL[s]}
-    </span>
-  );
-}
-
-function PostHead({ post }: { post: PostView }) {
-  const helper = post.kind === "helper";
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className={`badge ${helper ? "badge-helper" : "badge-match"}`}>{KIND_LABEL[post.kind]}</span>
-      <span className="num text-[15px] font-bold">{fmtDate(post.date)} {post.startTime}〜</span>
-      <span className="text-[13.5px]" style={{ color: "var(--text-sub)" }}>{post.venue.name}</span>
-      {isPast(post) && <span className="badge badge-gray">終了</span>}
-      {post.status === "filled" && !isPast(post) && <span className="badge badge-gray">成立</span>}
-    </div>
-  );
-}
-
-/** チーム運営: 自分の募集とエントリー、対戦エントリー */
-function TeamPanel({ posts, apps, db }: {
-  posts: PostView[];
-  apps: { a: Application; post: PostView }[];
-  db: ReturnType<typeof useDB>;
-}) {
-  const upcoming = posts.filter((p) => !isPast(p));
-  const done = posts.filter((p) => isPast(p));
-  return (
-    <div className="mt-4 flex flex-col gap-6">
-      <section>
-        <div className="flex items-center gap-3">
-          <h2 className="text-[16px] font-bold">出している募集</h2>
-          <Link href="/post/new/" className="btn btn-primary ml-auto" style={{ minHeight: 38, padding: "0 12px", fontSize: 14 }}>＋ 募集する</Link>
-        </div>
-        {upcoming.length === 0 && <p className="mt-2 text-[14px]" style={{ color: "var(--text-sub)" }}>いま出している募集はありません。</p>}
-        <ul className="mt-2 flex flex-col gap-3">
-          {upcoming.map((p) => {
-            const list = applicationsForPost(db, p.id);
-            const pending = list.filter((a) => a.status === "pending");
-            return (
-              <li key={p.id} className="card p-4">
-                <PostHead post={p} />
-                <p className="mt-1 text-[14px] font-bold">{p.team.name}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13.5px]" style={{ color: "var(--text-sub)" }}>
-                  <span className="num">承認待ち <b style={{ color: pending.length ? "var(--helper)" : "inherit" }}>{pending.length}</b>件</span>
-                  <span className="num">完了 <b>{list.filter((a) => a.status === "approved").length}</b>件</span>
-                  <Link href={`/post/?id=${p.id}`} className="font-bold" style={{ color: "var(--primary)" }}>募集ページ</Link>
-                  {p.status === "open" && (
-                    <button type="button" className="ml-auto underline" onClick={() => { if (confirm("この募集を締め切りますか？")) closePost(p.id); }}>
-                      締め切る
-                    </button>
-                  )}
-                </div>
-                {list.length > 0 && (
-                  <ul className="mt-3 flex flex-col gap-2">
-                    {[...pending, ...list.filter((a) => a.status !== "pending")].map((a) => (
-                      <ApplicantRow key={a.id} a={a} canDecide db={db} />
-                    ))}
-                  </ul>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section>
-        <h2 className="text-[16px] font-bold">対戦エントリー（自チームから他チームへ）</h2>
-        {apps.length === 0 && <p className="mt-2 text-[14px]" style={{ color: "var(--text-sub)" }}>まだありません。「探す」からトレーニングマッチにエントリーできます。</p>}
-        <ul className="mt-2 flex flex-col gap-3">
-          {apps.map(({ a, post }) => (
-            <li key={a.id} className="card p-4">
-              <PostHead post={post} />
-              <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                <span className="text-[14px]">相手: <b>{post.team.name}</b></span>
-                <Stars value={ratingSummary(db, { kind: "team", id: post.teamId }).avg} count={ratingSummary(db, { kind: "team", id: post.teamId }).count} size={13} />
-                <StatusBadge s={a.status} />
-                <Link href={`/post/?id=${post.id}`} className="ml-auto text-[13.5px] font-bold" style={{ color: "var(--primary)" }}>募集ページ</Link>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {done.length > 0 && (
-        <section>
-          <h2 className="text-[16px] font-bold">終わった募集</h2>
-          <ul className="mt-2 flex flex-col gap-2">
-            {done.map((p) => (
-              <li key={p.id} className="card p-3">
-                <PostHead post={p} />
-                <p className="num mt-1 text-[13.5px]" style={{ color: "var(--text-sub)" }}>
-                  完了 {applicationsForPost(db, p.id).filter((a) => a.status === "approved").length}件
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </div>
-  );
-}
-
-/** 個人: 自分が助っ人としてエントリーしたもの */
-function MyEntriesPanel({ items }: { items: { a: Application; post: PostView }[] }) {
-  const db = useDB();
-  return (
-    <div className="mt-4">
-      <h2 className="text-[16px] font-bold">助っ人エントリー</h2>
-      {items.length === 0 && (
-        <p className="mt-2 text-[14px]" style={{ color: "var(--text-sub)" }}>
-          まだありません。<Link href="/" className="font-bold" style={{ color: "var(--primary)" }}>探す</Link>から助っ人募集にエントリーできます。
-        </p>
-      )}
-      <ul className="mt-2 flex flex-col gap-3">
-        {items.map(({ a, post }) => {
-          const r = ratingSummary(db, { kind: "team", id: post.teamId });
-          return (
-            <li key={a.id} className="card p-4">
-              <PostHead post={post} />
-              <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                <span className="text-[14px]"><b>{post.team.name}</b></span>
-                <Stars value={r.avg} count={r.count} size={13} />
-                <StatusBadge s={a.status} />
-                <Link href={`/post/?id=${post.id}`} className="ml-auto text-[13.5px] font-bold" style={{ color: "var(--primary)" }}>募集ページ</Link>
-              </div>
-              <p className="mt-1 text-[13.5px]" style={{ color: "var(--text-sub)" }}>
-                {a.status === "pending" && "募集チームが承認すると「エントリー完了」になります。"}
-                {a.status === "approved" && !isPast(post) && "当日は会場でお願いします。"}
-                {a.status === "approved" && isPast(post) && "試合おつかれさまでした。「評価する」からチームを評価できます。"}
-              </p>
-              {a.status === "pending" && (
-                <button type="button" className="mt-2 text-[13.5px] underline" style={{ color: "var(--text-sub)" }} onClick={() => cancelApplication(a.id)}>
-                  エントリーを取り消す
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-/** 終わった試合の相手を評価する */
-function RatePanel({ items }: { items: PendingRating[] }) {
-  const [thanks, setThanks] = useState<string | null>(null);
-  return (
-    <div className="mt-4">
-      <h2 className="text-[16px] font-bold">評価する</h2>
-      <p className="mt-1 text-[13.5px]" style={{ color: "var(--text-sub)" }}>
-        エントリー完了して試合日を過ぎた相手を評価できます。評価は相手のページに表示され、次に募集する人の判断材料になります。
-      </p>
-      {thanks && (
-        <p className="mt-3 rounded-[10px] px-4 py-3 text-[14px] font-bold" style={{ background: "var(--primary-bg)", color: "var(--primary)" }} role="status">
-          {thanks} を評価しました。ありがとうございます。
-        </p>
-      )}
-      {items.length === 0 && <p className="mt-3 text-[14px]" style={{ color: "var(--text-sub)" }}>いま評価できる相手はいません。</p>}
-      <ul className="mt-3 flex flex-col gap-3">
-        {items.map((it) => (
-          <RateCard key={`${it.application.id}-${it.from.kind}-${it.from.id}`} it={it} onDone={() => setThanks(it.toName)} />
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function RateCard({ it, onDone }: { it: PendingRating; onDone: () => void }) {
-  const [stars, setStars] = useState<0 | 1 | 2 | 3 | 4 | 5>(0);
-  const [comment, setComment] = useState("");
-  return (
-    <li className="card p-4">
-      <PostHead post={it.post} />
-      <p className="mt-2 text-[15px]">
-        <b>{it.toName}</b> はどうでしたか？
-        <span className="ml-2 text-[13px]" style={{ color: "var(--text-sub)" }}>
-          {it.from.kind === "team" ? `（${it.post.team.id === it.from.id ? it.post.team.name : "自チーム"}として）` : "（個人として）"}
-        </span>
-      </p>
-      <div className="mt-2">
-        <StarInput value={stars} onChange={setStars} />
-      </div>
-      <textarea
-        className="field mt-1" rows={2} value={comment} onChange={(e) => setComment(e.target.value)}
-        placeholder="一言あれば（任意）。例: 時間どおりで気持ちよく試合ができました。"
-      />
-      <button
-        type="button" className="btn btn-primary mt-3" disabled={stars === 0}
-        style={{ opacity: stars === 0 ? 0.5 : 1 }}
-        onClick={() => {
-          if (stars === 0) return;
-          addRating({ postId: it.post.id, applicationId: it.application.id, from: it.from, to: it.to, stars, comment: comment.trim() || undefined });
-          onDone();
-        }}
-      >
-        この評価を送る
-      </button>
-    </li>
   );
 }

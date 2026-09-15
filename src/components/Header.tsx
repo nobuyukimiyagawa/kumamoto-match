@@ -19,7 +19,9 @@ export default function Header({ subtitle }: { subtitle?: string }) {
   const nav = [
     { href: "/", label: "探す" },
     { href: "/me/", label: "マイページ" },
+    ...(myTeams.length > 0 ? [{ href: "/team/", label: "チーム管理" }] : []),
   ];
+  // /team/ は /team/new/ や /team/edit/ も含めて「チーム管理」扱い。/me/ は個人だけ
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
   return (
@@ -84,16 +86,16 @@ export default function Header({ subtitle }: { subtitle?: string }) {
             <Link href="/me/" className="max-w-[40vw] truncate text-[14px] font-bold sm:max-w-none" style={{ color: "var(--text)" }}>
               {me?.displayName ?? "プロフィール未登録"}
             </Link>
-            <button type="button" className="btn btn-ghost" style={{ minHeight: 40, padding: "0 12px", fontSize: 13.5 }} onClick={() => signOut()}>
+            <button type="button" className="btn btn-ghost whitespace-nowrap" style={{ minHeight: 40, padding: "0 12px", fontSize: 13.5 }} onClick={() => signOut()}>
               ログアウト
             </button>
           </>
         ) : (
           <>
-            <Link href="/login/" className="btn btn-ghost" style={{ minHeight: 40, padding: "0 12px" }}>
+            <Link href="/login/" className="btn btn-ghost whitespace-nowrap" style={{ minHeight: 40, padding: "0 12px" }}>
               ログイン
             </Link>
-            <Link href="/signup/" className="btn btn-primary" style={{ minHeight: 40, padding: "0 12px" }}>
+            <Link href="/signup/" className="btn btn-primary whitespace-nowrap" style={{ minHeight: 40, padding: "0 12px" }}>
               新規登録
             </Link>
           </>

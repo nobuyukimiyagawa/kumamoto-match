@@ -159,9 +159,14 @@ function EntryPanel({
     return (
       <div className="card mt-3 p-5 text-center">
         <p className="text-[15px] font-bold">エントリーするには登録が必要です</p>
-        <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>無料で、Google・LINE・メールアドレスのどれでも登録できます。</p>
+        <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
+          {helper ? "助っ人は個人として登録します。" : "トレーニングマッチはチームとして登録した運営者がエントリーできます。"}
+          無料で、Google・LINE・メールアドレスのどれでも登録できます。
+        </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <Link href="/signup/" className="btn btn-primary">新規登録（無料）</Link>
+          <Link href={helper ? "/signup/player/" : "/signup/team/"} className="btn btn-primary">
+            {helper ? "個人として登録（無料）" : "チームとして登録（無料）"}
+          </Link>
           <Link href="/login/" className="btn btn-ghost">ログイン</Link>
         </div>
       </div>
@@ -265,7 +270,7 @@ function HostPanel({ apps, post, open }: { apps: Application[]; post: { id: stri
         <span className="num text-[13.5px]" style={{ color: "var(--text-sub)" }}>
           承認待ち{pending.length}件・完了{apps.filter((a) => a.status === "approved").length}件
         </span>
-        <Link href="/me/" className="ml-auto text-[13.5px] font-bold" style={{ color: "var(--primary)" }}>マイページで管理</Link>
+        <Link href="/team/" className="ml-auto text-[13.5px] font-bold" style={{ color: "var(--primary)" }}>チーム管理で見る</Link>
       </div>
       {apps.length === 0 && (
         <p className="mt-2 text-[14px]" style={{ color: "var(--text-sub)" }}>まだエントリーはありません。</p>
