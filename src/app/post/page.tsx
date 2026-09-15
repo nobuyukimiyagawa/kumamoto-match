@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { fmtDate } from "@/components/PostCard";
+import { feeLabel, feeText, fmtDate, VenueStatusBadge } from "@/components/PostCard";
 import { Stars } from "@/components/Stars";
 import VenueMap from "@/components/VenueMap";
 import ApplicantRow from "@/components/ApplicantRow";
@@ -98,8 +98,22 @@ function Detail() {
                 </dd>
               </>
             )}
-            <dt style={{ color: "var(--text-sub)" }}>参加費</dt>
-            <dd className="num font-bold">{post.fee ? `${post.fee.toLocaleString()}円` : "無料"}</dd>
+            {!helper && post.venueStatus && (
+              <>
+                <dt style={{ color: "var(--text-sub)" }}>会場の予約</dt>
+                <dd>
+                  <VenueStatusBadge post={post} />
+                  <span className="ml-2 text-[13px]" style={{ color: "var(--text-sub)" }}>
+                    {post.venueStatus === "reserved" ? "会場は押さえてあります" : "相手が決まってから予約します。日時・会場は目安です"}
+                  </span>
+                </dd>
+              </>
+            )}
+            <dt style={{ color: "var(--text-sub)" }}>{feeLabel(post)}</dt>
+            <dd className="num font-bold">
+              {feeText(post)}
+              {!helper && <span className="ml-2 text-[13px] font-normal" style={{ color: "var(--text-sub)" }}>相手チームにお願いする金額（会場費の折半など）</span>}
+            </dd>
           </dl>
 
           <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed">{post.body}</p>

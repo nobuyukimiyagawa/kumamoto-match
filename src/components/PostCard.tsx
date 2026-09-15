@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LEVEL_LABEL, KIND_LABEL, POSITION_LABEL } from "@/types";
+import { LEVEL_LABEL, KIND_LABEL, POSITION_LABEL, VENUE_STATUS_LABEL } from "@/types";
 import { fmtKm } from "@/lib/geo";
 import { Stars } from "@/components/Stars";
 import type { PostView } from "@/lib/store";
@@ -12,6 +12,27 @@ const WD = ["日", "月", "火", "水", "木", "金", "土"];
 export function fmtDate(iso: string) {
   const d = new Date(iso + "T00:00:00");
   return `${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+}
+
+/** 会場の予約状況バッジ（トレーニングマッチだけ） */
+export function VenueStatusBadge({ post }: { post: Pick<PostView, "kind" | "venueStatus"> }) {
+  if (post.kind !== "training_match" || !post.venueStatus) return null;
+  const reserved = post.venueStatus === "reserved";
+  return (
+    <span className={`badge ${reserved ? "badge-ok" : "badge-gray"}`} title={reserved ? "会場は予約済み" : "相手が決まってから会場を予約"}>
+      {reserved ? "◉ " : "◌ "}{VENUE_STATUS_LABEL[post.venueStatus]}
+    </span>
+  );
+}
+
+/** 金額の見出しと表示。助っ人＝参加費、トレマ＝相手チームの負担額（予約予定なら目安） */
+export function feeLabel(post: Pick<PostView, "kind">) {
+  return post.kind === "helper" ? "参加費" : "負担額";
+}
+export function feeText(post: Pick<PostView, "kind" | "fee" | "venueStatus">) {
+  const amount = post.fee ? `${post.fee.toLocaleString()}円` : "無料";
+  if (post.kind === "training_match" && post.venueStatus === "planned") return `${amount}（予定）`;
+  return amount;
 }
 
 export default function PostCard({
@@ -43,6 +64,7 @@ export default function PostCard({
         )}
         <span className={`badge ${helper ? "badge-helper" : "badge-match"}`}>{KIND_LABEL[post.kind]}</span>
         <span className="badge badge-gray">{LEVEL_LABEL[post.level]}</span>
+        <VenueStatusBadge post={post} />
         {post.status === "filled" && <span className="badge badge-gray">成立</span>}
         {active && (
           <span className="hud hud-accent ml-auto" style={{ fontWeight: 700 }}>
@@ -82,8 +104,8 @@ export default function PostCard({
           </p>
         )}
         <p>
-          <span style={{ color: "var(--text-sub)" }}>参加費 </span>
-          <span className="num font-bold">{post.fee ? `${post.fee.toLocaleString()}円` : "無料"}</span>
+          <span style={{ color: "var(--text-sub)" }}>{feeLabel(post)} </span>
+          <span className="num font-bold">{feeText(post)}</span>
         </p>
         {entries > 0 && (
           <p className="num" style={{ color: "var(--text-sub)" }}>エントリー{entries}件</p>

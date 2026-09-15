@@ -7,8 +7,8 @@ import { MAP_DEFAULT } from "@/config/site";
 import type { PostView as Post } from "@/lib/store";
 import { circlePolygon } from "@/lib/geo";
 
-/** OpenFreeMap の黒地図。鍵も登録も要らず、費用もかからない。 */
-const STYLE = "https://tiles.openfreemap.org/styles/dark";
+/** OpenFreeMap の標準カラー地図。黒地図は見にくいという声で戻した。鍵も登録も要らず、費用もかからない。 */
+const STYLE = "https://tiles.openfreemap.org/styles/liberty";
 
 /**
  * Worker の場所を明示する。

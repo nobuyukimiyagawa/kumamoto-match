@@ -5,7 +5,7 @@ import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Venue } from "@/types";
 
-const STYLE = "https://tiles.openfreemap.org/styles/dark";
+const STYLE = "https://tiles.openfreemap.org/styles/liberty";
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 maplibregl.setWorkerUrl(`${BASE}/maplibre/maplibre-gl-worker.mjs`);
 

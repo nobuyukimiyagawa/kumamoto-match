@@ -3,6 +3,8 @@ export type PostStatus = "open" | "closed" | "filled";
 export type Level = "beginner" | "casual" | "competitive";
 export type Position = "GK" | "DF" | "MF" | "FW" | "ANY";
 export type MemberRole = "owner" | "admin" | "member";
+/** トレーニングマッチの会場の予約状況。相手が決まってから予約するチームもある */
+export type VenueStatus = "reserved" | "planned";
 
 export type Venue = {
   id: string;
@@ -53,7 +55,14 @@ export type Post = {
   /** helper のときのみ使う */
   positions?: Position[];
   needed?: number;
-  fee?: number;        // 1人あたりの参加費（円）。0 は無料
+  /** training_match のときのみ。会場が予約済みか、相手が決まってから予約するか */
+  venueStatus?: VenueStatus;
+  /**
+   * 金額（円）。0 は無料。
+   *   helper         … 1人あたりの参加費
+   *   training_match … 相手チームの負担額（会場費の折半など）。venueStatus が planned なら目安
+   */
+  fee?: number;
   body: string;
   createdAt: string;
 };
@@ -91,6 +100,11 @@ export const LEVEL_LABEL: Record<Level, string> = {
   beginner: "初心者歓迎",
   casual: "エンジョイ",
   competitive: "本格志向",
+};
+
+export const VENUE_STATUS_LABEL: Record<VenueStatus, string> = {
+  reserved: "予約確定",
+  planned: "予約予定",
 };
 
 export const KIND_LABEL: Record<PostKind, string> = {

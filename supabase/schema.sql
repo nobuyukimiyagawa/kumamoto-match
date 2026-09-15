@@ -63,7 +63,8 @@ create table posts (
   level      play_level not null,
   positions  text[],          -- helper のときのみ
   needed     int,             -- helper のときのみ
-  fee        int default 0,
+  venue_status text check (venue_status in ('reserved', 'planned')),  -- training_match のみ。予約確定／予約予定
+  fee        int default 0,   -- helper: 1人あたり参加費 / training_match: 相手チームの負担額
   body       text not null,
   created_at timestamptz default now(),
   -- helper なら必要人数が要る

@@ -56,7 +56,7 @@ const d = (offset: number) => {
 export const POSTS: Post[] = [
   // これから
   { id: "p1", kind: "training_match", status: "open", teamId: "t1", venueId: "v1",
-    date: d(3), startTime: "19:00", endTime: "21:00", level: "casual", fee: 0,
+    date: d(3), startTime: "19:00", endTime: "21:00", level: "casual", venueStatus: "reserved", fee: 3000,
     body: "45分×2本でお願いします。審判は分担で。人数は11人制、少なければ8人制でも構いません。",
     createdAt: d(-2) },
   { id: "p2", kind: "helper", status: "open", teamId: "t2", venueId: "v3",
@@ -65,7 +65,7 @@ export const POSTS: Post[] = [
     body: "リーグ戦の助っ人を探しています。GK1名、DF2名。経験は問いません。参加費500円（グラウンド代）。",
     createdAt: d(-1) },
   { id: "p3", kind: "training_match", status: "open", teamId: "t3", venueId: "v2",
-    date: d(6), startTime: "10:00", endTime: "12:00", level: "competitive", fee: 0,
+    date: d(6), startTime: "10:00", endTime: "12:00", level: "competitive", venueStatus: "planned", fee: 2500,
     body: "県リーグ上位を目指すチームを希望します。強度高めでお願いします。",
     createdAt: d(-3) },
   { id: "p4", kind: "helper", status: "open", teamId: "t4", venueId: "v3",
@@ -74,7 +74,7 @@ export const POSTS: Post[] = [
     body: "人数が足りません。ポジションはどこでも。楽しくやりたい方歓迎。",
     createdAt: d(-1) },
   { id: "p5", kind: "training_match", status: "open", teamId: "t5", venueId: "v5",
-    date: d(12), startTime: "09:00", endTime: "11:00", level: "beginner", fee: 0,
+    date: d(12), startTime: "09:00", endTime: "11:00", level: "beginner", venueStatus: "reserved", fee: 0,
     body: "初心者中心のチームです。同じくらいのレベルのチームと練習試合をしたいです。",
     createdAt: d(-4) },
   { id: "p6", kind: "helper", status: "open", teamId: "t1", venueId: "v4",

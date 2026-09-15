@@ -6,7 +6,7 @@
  */
 import type {
   Application, ApplicationStatus, Level, Post, PostKind, Position, Profile, Rating, RatingTarget,
-  Team, TeamMember, Venue,
+  Team, TeamMember, Venue, VenueStatus,
 } from "@/types";
 
 export type DB = {
@@ -29,7 +29,7 @@ export type NewTeam = { name: string; city: string; level: Level; note?: string;
 export type TeamPatch = { name?: string; city?: string; level?: Level; note?: string };
 export type NewPost = {
   kind: PostKind; teamId: string; venueId: string; date: string; startTime: string; endTime: string;
-  level: Level; positions?: Position[]; needed?: number; fee?: number; body: string;
+  level: Level; positions?: Position[]; needed?: number; venueStatus?: VenueStatus; fee?: number; body: string;
 };
 export type NewApplication = { postId: string; applicantTeamId?: string; applicantProfileId?: string; message?: string };
 export type NewRating = {

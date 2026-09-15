@@ -243,8 +243,8 @@ a { color: inherit; }
       from 0deg,
       rgba(var(--primary-rgb), 0) 0deg,
       rgba(var(--primary-rgb), 0) 300deg,
-      rgba(var(--primary-rgb), .04) 330deg,
-      rgba(var(--primary-rgb), .26) 359deg,
+      rgba(var(--primary-rgb), .05) 330deg,
+      rgba(var(--primary-rgb), .32) 359deg,
       rgba(var(--primary-rgb), 0) 360deg
     );
     animation: sweep 4.5s linear infinite;
@@ -257,15 +257,15 @@ a { color: inherit; }
   }
   .radar-rings i {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    border-radius: 50%; border: 1px solid rgba(var(--primary-rgb), .22);
+    border-radius: 50%; border: 1px solid rgba(31, 140, 70, .45);
   }
   .radar-rings i:nth-child(1) { width: 140px; height: 140px; }
-  .radar-rings i:nth-child(2) { width: 300px; height: 300px; border-color: rgba(var(--primary-rgb), .16); }
-  .radar-rings i:nth-child(3) { width: 480px; height: 480px; border-color: rgba(var(--primary-rgb), .10); }
-  .radar-rings i:nth-child(4) { width: 700px; height: 700px; border-color: rgba(var(--primary-rgb), .06); }
+  .radar-rings i:nth-child(2) { width: 300px; height: 300px; border-color: rgba(31, 140, 70, .32); }
+  .radar-rings i:nth-child(3) { width: 480px; height: 480px; border-color: rgba(31, 140, 70, .20); }
+  .radar-rings i:nth-child(4) { width: 700px; height: 700px; border-color: rgba(31, 140, 70, .12); }
   .radar-cross { position: absolute; inset: 0; }
   .radar-cross::before, .radar-cross::after {
-    content: ""; position: absolute; background: rgba(var(--primary-rgb), .12);
+    content: ""; position: absolute; background: rgba(31, 140, 70, .25);
   }
   .radar-cross::before { left: var(--cx); top: 0; bottom: 0; width: 1px; }
   .radar-cross::after  { top: var(--cy); left: 0; right: 0; height: 1px; }
@@ -279,10 +279,10 @@ a { color: inherit; }
   .radar-frame::after  { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
   .radar-frame i.tl { display: none; }
   .radar-frame i.br { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
-  /* 地図の端を暗く落とす */
+  /* 地図の端を少しだけ落とす（地図は明るい色なので控えめに） */
   .radar-vignette {
     position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(ellipse at center, rgba(7,9,12,0) 60%, rgba(7,9,12,.45) 100%);
+    background: radial-gradient(ellipse at center, rgba(7,9,12,0) 65%, rgba(7,9,12,.28) 100%);
   }
 
   /* 地図の隅の計器表示 */

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { createPost, teamsRunBy, useDB, useSessionId } from "@/lib/store";
-import { KIND_LABEL, LEVEL_LABEL, POSITION_LABEL, type PostKind, type Level, type Position } from "@/types";
+import { KIND_LABEL, LEVEL_LABEL, POSITION_LABEL, VENUE_STATUS_LABEL, type PostKind, type Level, type Position, type VenueStatus } from "@/types";
 import { SITE } from "@/config/site";
 
 const POSITIONS: Position[] = ["GK", "DF", "MF", "FW", "ANY"];
@@ -27,6 +27,7 @@ export default function NewPostPage() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [needed, setNeeded] = useState(1);
   const [fee, setFee] = useState(0);
+  const [venueStatus, setVenueStatus] = useState<VenueStatus>("reserved");
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -68,7 +69,7 @@ export default function NewPostPage() {
                 const post = await createPost({
                   kind, teamId: teamId || myTeams[0].id, venueId: venueId || db.venues[0].id,
                   date, startTime: start, endTime: end, level, fee,
-                  ...(helper ? { positions, needed } : {}),
+                  ...(helper ? { positions, needed } : { venueStatus }),
                   body: body.trim(),
                 });
                 router.push(`/post/?id=${post.id}`);
@@ -157,11 +158,36 @@ export default function NewPostPage() {
               </div>
             )}
 
-            <div className="max-w-[14rem]">
-              <label className="label" htmlFor="fee">参加費（1人あたり・円）</label>
-              <input id="fee" type="number" min={0} step={100} value={fee} onChange={(e) => setFee(Number(e.target.value))} className="field" />
-              <p className="hint">無料なら 0 のままにしてください。</p>
-            </div>
+            {helper ? (
+              <div className="max-w-[14rem]">
+                <label className="label" htmlFor="fee">参加費（1人あたり・円）</label>
+                <input id="fee" type="number" min={0} step={100} value={fee} onChange={(e) => setFee(Number(e.target.value))} className="field" />
+                <p className="hint">無料なら 0 のままにしてください。</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4 rounded-[4px] p-4" style={{ background: "var(--match-bg)", border: "1px solid rgba(125,211,252,.35)" }}>
+                <fieldset>
+                  <legend className="label">会場の予約状況</legend>
+                  <div className="flex flex-wrap gap-2" role="radiogroup">
+                    {(["reserved", "planned"] as VenueStatus[]).map((v) => (
+                      <button key={v} type="button" role="radio" className="chip" aria-checked={venueStatus === v} data-on={venueStatus === v} onClick={() => setVenueStatus(v)}>
+                        {VENUE_STATUS_LABEL[v]}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="hint">
+                    {venueStatus === "reserved"
+                      ? "会場は押さえてあります。日時・会場はこのまま確定です。"
+                      : "相手が決まってから会場を予約します。日時・会場・負担額は目安として表示されます。"}
+                  </p>
+                </fieldset>
+                <div className="max-w-[14rem]">
+                  <label className="label" htmlFor="fee">相手チームの負担額（円）</label>
+                  <input id="fee" type="number" min={0} step={100} value={fee} onChange={(e) => setFee(Number(e.target.value))} className="field" />
+                  <p className="hint">会場費の折半など、相手チームにお願いする金額。無料なら 0 のまま。{venueStatus === "planned" && "予約予定なので「（予定）」と表示されます。"}</p>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="label" htmlFor="body">本文</label>

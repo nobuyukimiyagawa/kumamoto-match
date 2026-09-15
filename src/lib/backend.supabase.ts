@@ -51,6 +51,7 @@ const toPost = (r: Row): Post => ({
   date: ymd(r.match_date), startTime: hhmm(r.start_time), endTime: hhmm(r.end_time),
   level: r.level as Level, positions: (r.positions as Position[] | null) ?? undefined,
   needed: r.needed == null ? undefined : Number(r.needed), fee: r.fee == null ? 0 : Number(r.fee),
+  venueStatus: (r.venue_status as Post["venueStatus"] | null) ?? undefined,
   body: String(r.body ?? ""), createdAt: ymd(r.created_at),
 });
 const toApplication = (r: Row): Application => ({
@@ -220,6 +221,7 @@ export const supabaseBackend: Backend = {
       kind: input.kind, team_id: input.teamId, venue_id: input.venueId,
       match_date: input.date, start_time: input.startTime, end_time: input.endTime,
       level: input.level, positions: input.positions ?? null, needed: input.needed ?? null,
+      venue_status: input.venueStatus ?? null,
       fee: input.fee ?? 0, body: input.body,
     }).select().single();
     fail(error);

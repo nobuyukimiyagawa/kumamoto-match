@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ApplicantRow from "@/components/ApplicantRow";
-import { fmtDate } from "@/components/PostCard";
+import { fmtDate, VenueStatusBadge } from "@/components/PostCard";
 import { StarInput, Stars } from "@/components/Stars";
 import {
   addRating, applicationsForPost, cancelApplication, closePost, isPast, ratingSummary, useDB,
@@ -35,6 +35,7 @@ export function PostHead({ post }: { post: PostView }) {
       <span className={`badge ${helper ? "badge-helper" : "badge-match"}`}>{KIND_LABEL[post.kind]}</span>
       <span className="num text-[15px] font-bold">{fmtDate(post.date)} {post.startTime}〜</span>
       <span className="text-[13.5px]" style={{ color: "var(--text-sub)" }}>{post.venue.name}</span>
+      <VenueStatusBadge post={post} />
       {isPast(post) && <span className="badge badge-gray">終了</span>}
       {post.status === "filled" && !isPast(post) && <span className="badge badge-gray">成立</span>}
     </div>
