@@ -296,6 +296,47 @@ a { color: inherit; }
   }
   .readout b { color: var(--text); font-weight: 400; }
 
+  /* ---------- 上部の条件バー（ドロップダウン） ---------- */
+  .dd-btn {
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+    min-height: 48px; min-width: 7.5rem; padding: 6px 12px; flex: 0 0 auto;
+    border: 1px solid var(--line-2); border-radius: 4px; background: var(--surface);
+    color: var(--text); text-align: left; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  @media (min-width: 768px) { .dd-btn { flex: 1 1 0; min-width: 0; } }
+  .dd-btn:hover { border-color: var(--text-sub); }
+  .dd-btn[data-open="true"] { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), 0 0 14px rgba(var(--primary-rgb), .25); }
+  .dd-val {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14.5px; font-weight: 700; line-height: 1.2; white-space: nowrap;
+  }
+  .dd-caret { margin-left: auto; color: var(--text-sub); font-size: 12px; }
+  .dd-btn[data-open="true"] .dd-caret { color: var(--primary); transform: rotate(180deg); }
+
+  .dd-backdrop { position: fixed; inset: 0; z-index: 30; background: rgba(7, 9, 12, .35); }
+  @media (min-width: 640px) { .dd-backdrop { background: transparent; } }
+
+  .dd-panel {
+    position: absolute; left: 16px; top: calc(100% - 4px); z-index: 31;
+    width: min(22rem, calc(100vw - 32px));
+    padding: 12px 12px 14px;
+    background: var(--surface); border: 1px solid var(--primary); border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(var(--primary-rgb), .2);
+    max-height: min(75dvh, 640px); overflow-y: auto;
+  }
+  .dd-panel[data-wide="true"] { width: min(26rem, calc(100vw - 32px)); }
+  @media (max-width: 639px) {
+    /* スマホは画面下のシートとして出す */
+    .dd-panel, .dd-panel[data-wide="true"] {
+      position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto;
+      border-radius: 10px 10px 0 0; border-left: 0; border-right: 0; border-bottom: 0;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom));
+      max-height: 80dvh;
+      animation: dd-up .25s cubic-bezier(.2, .8, .2, 1);
+    }
+  }
+
   /* ---------- 下から出るカード（ボトムシート） ---------- */
   .sheet-backdrop {
     position: fixed; inset: 0; z-index: 40;
@@ -353,6 +394,7 @@ a { color: inherit; }
 }
 
 @keyframes sweep { to { transform: rotate(360deg); } }
+@keyframes dd-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes ping  { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(2.6); opacity: 0; } }
 @keyframes blink { to { visibility: hidden; } }
 

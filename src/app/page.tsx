@@ -125,6 +125,12 @@ export default function SearchPage() {
     <main className="flex h-dvh flex-col">
       <Header subtitle={`${SITE.area}のトレーニングマッチと助っ人を探す`} />
 
+      {/* 条件バー。食べログ風に上部へ横並び、各項目はドロップダウン */}
+      <div className="relative z-30 shrink-0" style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}>
+        <Filters value={filter} onChange={changeFilter} locating={locating} locError={locError} counts={counts} cities={cities} />
+        <div className="ticks" aria-hidden />
+      </div>
+
       {/* スマホは 上=地図 / 下=リスト。PC は 左=リスト / 右=地図 */}
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <section
@@ -143,11 +149,6 @@ export default function SearchPage() {
           style={{ background: "var(--bg-2)", borderRight: "1px solid var(--line)" }}
           aria-label="募集一覧"
         >
-          <div className="px-4 py-2.5 md:pb-3 md:pt-3" style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}>
-            <p className="hud mb-2 hidden md:block">filter</p>
-            <Filters value={filter} onChange={changeFilter} locating={locating} locError={locError} counts={counts} cities={cities} />
-          </div>
-          <div className="ticks" aria-hidden />
 
           <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-3 md:pb-6">
             <div className="mb-2 flex flex-wrap items-baseline gap-x-2">

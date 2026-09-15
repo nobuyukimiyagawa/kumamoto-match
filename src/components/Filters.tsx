@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PostKind, Level } from "@/types";
+import { KIND_LABEL, LEVEL_LABEL } from "@/types";
 import Calendar, { addDays, fmtDateJa, todayISO } from "@/components/Calendar";
 
 export type RadiusKm = 0 | 10 | 20 | 30 | 50;
@@ -22,126 +23,170 @@ export function defaultFilter(): FilterState {
   return { kind: "all", level: "all", date: todayISO(), city: "all", radiusKm: 0 };
 }
 
-/** 見出し付きのチップ列。スマホでは群を1行に並べて横スクロール、PCでは段組み */
-function Row<T extends string | number>({
-  title, items, value, onPick, busy, trailing,
-}: {
-  title: string;
-  items: readonly (readonly [T, string, number?])[];
-  value: T;
-  onPick: (v: T) => void;
-  busy?: boolean;
-  trailing?: React.ReactNode;
-}) {
-  return (
-    <div className="flex shrink-0 items-center gap-2 md:items-start">
-      <span className="shrink-0 text-[13px] font-bold md:w-[4.6rem] md:pt-2.5" style={{ color: "var(--text-sub)" }}>
-        <span aria-hidden style={{ color: "var(--primary)" }}>▸ </span>{title}
-      </span>
-      <div className="flex gap-2 py-0.5 md:flex-wrap" role="group" aria-label={title}>
-        {items.map(([v, label, n]) => (
-          <button
-            key={String(v)}
-            type="button"
-            className="chip"
-            aria-pressed={v === value}
-            disabled={busy}
-            onClick={() => onPick(v)}
-          >
-            {label}
-            {n != null && (
-              <span className="num ml-1.5 text-[12px]" style={{ opacity: .8 }}>{n}</span>
-            )}
-          </button>
-        ))}
-        {trailing}
-      </div>
-    </div>
-  );
-}
+type Key = "date" | "kind" | "city" | "radius" | "level";
 
+/**
+ * 画面上部の条件バー（食べログの「エリア／ジャンル／日付」の並びと同じ）。
+ * 各条件はドロップダウン。PC では下に開き、スマホでは画面下からシートで開く。
+ * 選ぶと即座に絞り込む（検索ボタンは無い）。
+ */
 export default function Filters({
   value, onChange, locating, locError, counts, cities,
 }: {
   value: FilterState;
   onChange: (v: FilterState) => void;
-  /** 現在地を取得中 */
   locating?: boolean;
-  /** 現在地が取れなかったときの説明 */
   locError?: string | null;
   /** 日付ごとの募集数（日付以外の条件を適用したあと） */
   counts: Record<string, number>;
-  /** 会場の市区町村と件数（日付・場所以外の条件を適用したあと） */
+  /** 会場の市区町村と件数 */
   cities: [string, number][];
 }) {
-  const set = (p: Partial<FilterState>) => onChange({ ...value, ...p });
-  const [calOpen, setCalOpen] = useState(false);
+  const [open, setOpen] = useState<Key | null>(null);
+  const bar = useRef<HTMLDivElement>(null);
+  const set = (p: Partial<FilterState>) => { onChange({ ...value, ...p }); setOpen(null); };
+
+  // 外側を押すか Esc で閉じる
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => { if (bar.current && !bar.current.contains(e.target as Node)) setOpen(null); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(null); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [open]);
+
   const today = todayISO();
   const tomorrow = addDays(today, 1);
-  const d = value.date;
-  // 「今日」「明日」以外の日付が選ばれているときは、カレンダーのチップにその日を出す
-  const custom = d && d !== today && d !== tomorrow ? d : null;
-  const dateKey = d === null ? "all" : d === today ? "today" : d === tomorrow ? "tomorrow" : "custom";
+  const dateText = value.date === null ? "すべての日程" : value.date === today ? `今日 ${fmtDateJa(today)}` : value.date === tomorrow ? `明日 ${fmtDateJa(tomorrow)}` : fmtDateJa(value.date);
+  const isDefault = value.kind === "all" && value.level === "all" && value.city === "all" && value.radiusKm === 0 && value.date === today;
+
+  const toggle = (k: Key) => setOpen((o) => (o === k ? null : k));
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* スマホでは右端をぼかして「まだ右にある」ことを示す */}
-      <div className="scroll-hint -mx-4 md:mx-0">
-      <div className="no-bar flex gap-4 overflow-x-auto px-4 md:flex-col md:gap-2 md:overflow-visible md:px-0">
-        <Row
-          title="日付"
-          items={[
-            ["today", "今日", counts[today] ?? 0],
-            ["tomorrow", "明日", counts[tomorrow] ?? 0],
-            ["custom", custom ? fmtDateJa(custom) : "カレンダー", custom ? counts[custom] ?? 0 : undefined],
-            ["all", "すべての日程"],
-          ] as const}
-          value={dateKey}
-          onPick={(k) => {
-            if (k === "today") { set({ date: today }); setCalOpen(false); }
-            else if (k === "tomorrow") { set({ date: tomorrow }); setCalOpen(false); }
-            else if (k === "all") { set({ date: null }); setCalOpen(false); }
-            else setCalOpen((o) => !o);
-          }}
-        />
-        <Row
-          title="種別"
-          items={[["all", "すべて"], ["training_match", "トレーニングマッチ"], ["helper", "助っ人募集"]] as const}
-          value={value.kind} onPick={(v) => set({ kind: v })}
-        />
-        <Row
-          title="場所"
-          items={[["all", "すべて"] as const, ...cities.map(([c, n]) => [c, c, n] as const)]}
-          value={value.city} onPick={(v) => set({ city: v })}
-        />
-        <Row
-          title="現在地から"
-          items={[[0, "指定なし"], [10, "10km以内"], [20, "20km以内"], [30, "30km以内"], [50, "50km以内"]] as const}
-          value={value.radiusKm} onPick={(v) => set({ radiusKm: v })}
-          busy={locating}
-        />
-        <Row
-          title="レベル"
-          items={[["all", "問わない"], ["beginner", "初心者歓迎"], ["casual", "エンジョイ"], ["competitive", "本格志向"]] as const}
-          value={value.level} onPick={(v) => set({ level: v })}
-        />
-      </div>
+    <div ref={bar} className="relative">
+      <div className="no-bar flex items-stretch gap-1 overflow-x-auto px-3 py-2 md:px-4" role="toolbar" aria-label="絞り込み">
+        <Trigger label="日付" value={dateText} open={open === "date"} onClick={() => toggle("date")} accent />
+        <Trigger label="種別" value={value.kind === "all" ? "すべて" : KIND_LABEL[value.kind]} open={open === "kind"} onClick={() => toggle("kind")} />
+        <Trigger label="場所" value={value.city === "all" ? "すべて" : value.city} open={open === "city"} onClick={() => toggle("city")} />
+        <Trigger label="現在地から" value={value.radiusKm ? `${value.radiusKm}km以内` : "指定なし"} open={open === "radius"} onClick={() => toggle("radius")} busy={locating} />
+        <Trigger label="レベル" value={value.level === "all" ? "問わない" : LEVEL_LABEL[value.level]} open={open === "level"} onClick={() => toggle("level")} />
+        {!isDefault && (
+          <button
+            type="button" className="hud ml-auto shrink-0 self-center px-2 py-2 underline"
+            style={{ color: "var(--text-sub)" }}
+            onClick={() => { onChange(defaultFilter()); setOpen(null); }}
+          >
+            条件をリセット
+          </button>
+        )}
       </div>
 
-      {calOpen && (
-        <Calendar
-          value={value.date}
-          counts={counts}
-          onChange={(iso) => { set({ date: iso }); setCalOpen(false); }}
-        />
-      )}
+      {open && <div className="dd-backdrop" onClick={() => setOpen(null)} aria-hidden />}
 
-      {locating && (
-        <p className="text-[13px]" style={{ color: "var(--text-sub)" }}>現在地を取得しています…</p>
+      {open === "date" && (
+        <Panel title="日付" onClose={() => setOpen(null)} wide>
+          <div className="mb-3 flex flex-wrap gap-2">
+            <button type="button" className="chip" aria-pressed={value.date === today} onClick={() => set({ date: today })}>今日 <span className="num ml-1 opacity-80">{counts[today] ?? 0}</span></button>
+            <button type="button" className="chip" aria-pressed={value.date === tomorrow} onClick={() => set({ date: tomorrow })}>明日 <span className="num ml-1 opacity-80">{counts[tomorrow] ?? 0}</span></button>
+            <button type="button" className="chip" aria-pressed={value.date === null} onClick={() => set({ date: null })}>すべての日程</button>
+          </div>
+          <Calendar value={value.date} counts={counts} onChange={(iso) => set({ date: iso })} />
+        </Panel>
       )}
-      {locError && (
-        <p className="text-[13px] font-bold" style={{ color: "var(--danger)" }}>{locError}</p>
+      {open === "kind" && (
+        <Panel title="種別" onClose={() => setOpen(null)}>
+          <Options
+            items={[["all", "すべて"], ["training_match", KIND_LABEL.training_match], ["helper", KIND_LABEL.helper]] as const}
+            value={value.kind} onPick={(v) => set({ kind: v })}
+          />
+        </Panel>
+      )}
+      {open === "city" && (
+        <Panel title="場所（会場の市区町村）" onClose={() => setOpen(null)}>
+          <Options
+            items={[["all", "すべて", cities.reduce((s, [, n]) => s + n, 0)] as const, ...cities.map(([c, n]) => [c, c, n] as const)]}
+            value={value.city} onPick={(v) => set({ city: v })}
+          />
+        </Panel>
+      )}
+      {open === "radius" && (
+        <Panel title="現在地からの距離" onClose={() => setOpen(null)}>
+          <Options
+            items={[[0, "指定なし"], [10, "10km以内"], [20, "20km以内"], [30, "30km以内"], [50, "50km以内"]] as const}
+            value={value.radiusKm} onPick={(v) => set({ radiusKm: v })}
+          />
+          <p className="hint">選ぶと、この端末の位置情報を使います。地図には会場だけが表示され、あなたの位置は保存されません。</p>
+          {locating && <p className="mt-1 text-[13px]" style={{ color: "var(--text-sub)" }}>現在地を取得しています…</p>}
+          {locError && <p className="mt-1 text-[13px] font-bold" style={{ color: "var(--danger)" }}>{locError}</p>}
+        </Panel>
+      )}
+      {open === "level" && (
+        <Panel title="レベル" onClose={() => setOpen(null)}>
+          <Options
+            items={[["all", "問わない"], ["beginner", LEVEL_LABEL.beginner], ["casual", LEVEL_LABEL.casual], ["competitive", LEVEL_LABEL.competitive]] as const}
+            value={value.level} onPick={(v) => set({ level: v })}
+          />
+        </Panel>
+      )}
+      {locError && !open && (
+        <p className="px-4 pb-2 text-[13px] font-bold" style={{ color: "var(--danger)" }}>{locError}</p>
       )}
     </div>
+  );
+}
+
+/** バーの1項目。小さな見出しと、いま選んでいる値 */
+function Trigger({
+  label, value, open, onClick, accent, busy,
+}: { label: string; value: string; open: boolean; onClick: () => void; accent?: boolean; busy?: boolean }) {
+  return (
+    <button type="button" className="dd-btn" data-open={open} onClick={onClick} aria-expanded={open} aria-haspopup="dialog">
+      <span className="hud" style={{ color: accent ? "var(--primary)" : "var(--text-sub)" }}>{label}</span>
+      <span className="dd-val">
+        {busy ? "取得中…" : value}
+        <span className="dd-caret" aria-hidden>▾</span>
+      </span>
+    </button>
+  );
+}
+
+/** 開いたパネル。PC ではバーの下、スマホでは画面下のシート */
+function Panel({ title, children, onClose, wide }: { title: string; children: React.ReactNode; onClose: () => void; wide?: boolean }) {
+  return (
+    <div className="dd-panel" data-wide={wide} role="dialog" aria-label={title}>
+      <div className="mb-2 flex items-center">
+        <p className="hud hud-accent">{title}</p>
+        <button type="button" className="btn btn-ghost ml-auto sm:hidden" style={{ minHeight: 36, padding: "0 12px" }} onClick={onClose}>閉じる</button>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** 選択肢の縦並び。件数があれば右に出す */
+function Options<T extends string | number>({
+  items, value, onPick,
+}: { items: readonly (readonly [T, string, number?])[]; value: T; onPick: (v: T) => void }) {
+  return (
+    <ul className="flex flex-col" role="listbox">
+      {items.map(([v, label, n]) => {
+        const on = v === value;
+        return (
+          <li key={String(v)}>
+            <button
+              type="button" role="option" aria-selected={on}
+              className="flex w-full items-center gap-3 rounded-[4px] px-3 text-left text-[15px]"
+              style={{ minHeight: 46, background: on ? "var(--primary-bg)" : "transparent", color: on ? "var(--primary)" : "var(--text)", fontWeight: on ? 700 : 400 }}
+              onClick={() => onPick(v)}
+            >
+              <span className="w-4 text-center" aria-hidden>{on ? "●" : ""}</span>
+              <span className="flex-1">{label}</span>
+              {n != null && <span className="num text-[13px]" style={{ color: "var(--text-sub)" }}>{n}件</span>}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
