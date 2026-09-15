@@ -19,7 +19,10 @@ const WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-const stripe = new Stripe(STRIPE_KEY, { apiVersion: "2024-12-18.acacia" });
+// API バージョンはアカウント既定（2026-08-26）に合わせる。古い版を固定すると Managed Payments が有効な
+// アカウントでは Checkout が拒否される
+// deno-lint-ignore no-explicit-any
+const stripe = new Stripe(STRIPE_KEY, { apiVersion: "2026-08-26.dahlia" as any });
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
 /** サブスクの状態から、チームのプランと期限を決めて書き込む */
@@ -28,7 +31,10 @@ async function applySubscription(sub: Stripe.Subscription) {
   const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
   // 有効: active / trialing。past_due（支払い失敗中）も期限までは有効扱い。それ以外は無料に戻す
   const active = ["active", "trialing", "past_due"].includes(sub.status);
-  const until = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+  // 期間の終わり。API 2025-03 以降は items 側に移った（Webhook のイベントは新しい版で届く）ので両方を見る
+  const legacy = (sub as unknown as { current_period_end?: number }).current_period_end;
+  const periodEnd = legacy ?? sub.items?.data?.[0]?.current_period_end;
+  const until = periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
   const patch = {
     plan: active ? "team" : "free",
     plan_until: active ? until : null,
@@ -70,7 +76,11 @@ Deno.serve(async (req) => {
       }
       case "invoice.paid": {
         const inv = event.data.object as Stripe.Invoice;
-        const subId = typeof inv.subscription === "string" ? inv.subscription : inv.subscription?.id;
+        // API 2025-03 以降は invoice.parent.subscription_details.subscription。古い版は invoice.subscription
+        const legacySub = (inv as unknown as { subscription?: string | { id: string } }).subscription;
+        const parentSub = (inv as unknown as { parent?: { subscription_details?: { subscription?: string | { id: string } } } }).parent?.subscription_details?.subscription;
+        const raw = parentSub ?? legacySub;
+        const subId = typeof raw === "string" ? raw : raw?.id;
         if (subId) await applySubscription(await stripe.subscriptions.retrieve(subId));
         break;
       }

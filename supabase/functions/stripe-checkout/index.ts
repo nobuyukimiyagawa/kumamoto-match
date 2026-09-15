@@ -22,7 +22,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-const stripe = new Stripe(STRIPE_KEY, { apiVersion: "2024-12-18.acacia" });
+// API バージョンはアカウント既定（2026-08-26）に合わせる。古い版を固定すると Managed Payments が有効な
+// アカウントでは Checkout が拒否される
+// deno-lint-ignore no-explicit-any
+const stripe = new Stripe(STRIPE_KEY, { apiVersion: "2026-08-26.dahlia" as any });
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
 const CORS = {
@@ -73,6 +76,13 @@ Deno.serve(async (req) => {
 
   // 3) Stripe の顧客を用意する（チーム1つに顧客1つ）
   let customerId = team.stripe_customer_id as string | null;
+  // 別の Stripe アカウントで作った顧客 ID が残っていることがある（鍵の差し替え時）。無ければ作り直す
+  if (customerId) {
+    try {
+      const c = await stripe.customers.retrieve(customerId);
+      if ((c as { deleted?: boolean }).deleted) customerId = null;
+    } catch { customerId = null; }
+  }
   if (!customerId) {
     const c = await stripe.customers.create({
       email: me.user.email ?? undefined,
@@ -109,6 +119,8 @@ Deno.serve(async (req) => {
     allow_promotion_codes: true,
     subscription_data: { metadata: { team_id: team.id } },
     metadata: { team_id: team.id },
-  });
+    // Managed Payments（Stripe が販売者になる方式）は使わない。通常の自社販売として決済する
+    managed_payments: { enabled: false },
+  } as unknown as Stripe.Checkout.SessionCreateParams);
   return json({ url: session.url });
 });

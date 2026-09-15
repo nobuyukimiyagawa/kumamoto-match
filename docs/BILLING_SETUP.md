@@ -64,3 +64,18 @@ Edge Functions（両方とも配置済み、Verify JWT は OFF）:
 - Secrets の STRIPE_SECRET_KEY / STRIPE_PRICE_ID / STRIPE_WEBHOOK_SECRET を本番の値に差し替える
 - サイトに「特定商取引法に基づく表記」「利用規約」「プライバシーポリシー」を用意する（審査で見られる）
 - `PLAN.enforceFreeLimit` を true にするかどうか決める
+
+## 設定済みの状態（2026-09-15）
+
+- Stripe アカウント「ピッチメイト」（acct_1UFuQEK2…）のサンドボックスで設定完了。**別アカウント（acct_1UFuQPGl…）も存在するが未使用**
+- 商品「チームプラン」980円/月（prod_VGRTki0ZIe5VVA / price_1UFuaoK2MWJXFQJDg2FSYZ6c）。税コードは SaaS 業務用（txcd_10103001）
+- Webhook「pitchmate-supabase」→ stripe-webhook。API 2026-08-26.dahlia
+- Secrets: STRIPE_SECRET_KEY / STRIPE_PRICE_ID / STRIPE_WEBHOOK_SECRET / SITE_URL 投入済み
+- テスト決済（test1 / FC 熊本イレブン）で plan=team, plan_until=1か月後 になることを確認
+
+### ハマりどころ
+- アカウントが新しいと **Managed Payments** が既定で ON。古い API バージョンを固定すると Checkout が拒否される。
+  → SDK の apiVersion を 2026-08-26.dahlia にし、`managed_payments: { enabled: false }` を渡している
+- 新 API では `subscription.current_period_end` が `items.data[0]` に、`invoice.subscription` が
+  `invoice.parent.subscription_details.subscription` に移った。webhook は両方を見る
+- 鍵を別アカウントに差し替えると `stripe_customer_id` が食い違う。checkout は顧客が無ければ作り直す
