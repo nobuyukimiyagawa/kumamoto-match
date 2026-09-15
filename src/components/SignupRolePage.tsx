@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
+import Footer from "@/components/Footer";
 import AuthButtons, { type SignupRole } from "@/components/AuthButtons";
 import { useSessionId } from "@/lib/store";
 
@@ -51,7 +52,12 @@ export default function SignupRolePage({ role }: { role: SignupRole }) {
               </Link>
             </div>
           ) : (
-            <AuthButtons intent="signup" role={role} />
+            <>
+              <AuthButtons intent="signup" role={role} />
+              <p className="mt-3 text-center text-[12.5px]" style={{ color: "var(--text-sub)" }}>
+                登録することで<Link href="/legal/terms/" className="underline">利用規約</Link>と<Link href="/legal/privacy/" className="underline">プライバシーポリシー</Link>に同意したものとみなします。
+              </p>
+            </>
           )}
         </div>
         {!sid && (
@@ -61,6 +67,7 @@ export default function SignupRolePage({ role }: { role: SignupRole }) {
           </p>
         )}
       </div>
+      <Footer />
       <BottomNav />
     </main>
   );

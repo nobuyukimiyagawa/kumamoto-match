@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
+import Footer from "@/components/Footer";
 import AuthButtons from "@/components/AuthButtons";
 import { useSessionId } from "@/lib/store";
 
@@ -45,6 +46,7 @@ export default function LoginPage() {
           </>
         )}
       </div>
+      <Footer />
       <BottomNav />
     </main>
   );

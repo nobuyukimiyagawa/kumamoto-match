@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { PLAN } from "@/config/plan";
 import { AUTH_MODE, isTeamPlanActive, openBillingPortal, startCheckout } from "@/lib/store";
 import type { Team } from "@/types";
@@ -70,7 +71,7 @@ export default function PlanCard({ team, justPaid }: { team: Team; justPaid?: "1
           {PLAN.benefits.map((b) => (
             <li key={b} className="flex gap-2"><span aria-hidden style={{ color: "var(--primary)" }}>▸</span>{b}</li>
           ))}
-          <li className="mt-1 text-[12.5px]">お支払いはクレジットカード・Apple Pay・Google Pay。カード情報はこのサイトを通らず、Stripe の画面で入力します。いつでも解約できます。</li>
+          <li className="mt-1 text-[12.5px]">お支払いはクレジットカード・Apple Pay・Google Pay。カード情報はこのサイトを通らず、Stripe の画面で入力します。いつでも解約できます。<Link href="/legal/tokushoho/" className="ml-1 underline">特定商取引法に基づく表記</Link></li>
         </ul>
       )}
       {AUTH_MODE === "local" && (

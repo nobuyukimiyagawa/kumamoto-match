@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import PlanCard from "@/components/PlanCard";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
+import Footer from "@/components/Footer";
 import { Stars } from "@/components/Stars";
 import { RatePanel, TeamPanel } from "@/components/ManagePanels";
 import {
@@ -154,6 +155,7 @@ function TeamManage() {
         {tab === "posts" && <TeamPanel posts={teamPosts} apps={teamApps} db={db} />}
         {tab === "rate" && <RatePanel items={pendingRatings} />}
       </div>
+      <Footer />
       <BottomNav />
     </main>
   );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
+import Footer from "@/components/Footer";
 import { feeLabel, feeText, fmtDate, VenueStatusBadge } from "@/components/PostCard";
 import { Stars } from "@/components/Stars";
 import VenueMap from "@/components/VenueMap";
@@ -151,6 +152,7 @@ function Detail() {
           />
         )}
       </div>
+      <Footer />
       <BottomNav />
     </main>
   );

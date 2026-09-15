@@ -149,3 +149,10 @@ Supabase に移すときは store.ts の関数の中身だけ差し替える（�
 - 正本 SVG: `docs/logo/pitchmate-mark.svg`（線は currentColor）
 - サイトでは `src/components/Logo.tsx`（ヘッダー）、`src/app/icon.svg`／`favicon.ico`／`apple-icon.png`（黒タイル）
 - 検討した5案は `docs/logo/index.html`
+
+## 規約類（2026-09-15）
+
+- `/legal/tokushoho/` 特定商取引法に基づく表記、`/legal/privacy/` プライバシーポリシー、`/legal/terms/` 利用規約
+- 運営者情報は `src/config/operator.ts`（HIZEROWA／代表 仲地祐人。出典 hizerowa.studio.site の公開情報）。更新日は `LEGAL_UPDATED`
+- 各ページ末尾の `Footer.tsx` からリンク。新規登録画面に同意の一文、チーム管理のプランカードに特商法へのリンク
+- 番地は公開サイトに無いので「請求があれば開示」の書き方（個人事業主に認められている方式）

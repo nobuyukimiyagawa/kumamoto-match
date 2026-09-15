@@ -357,6 +357,18 @@ a { color: inherit; }
   .list-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); transition: background .2s, transform .2s; }
   .list-dot[data-on="true"] { background: var(--primary); transform: scale(1.4); }
 
+  /* 規約類の本文 */
+  .legal { font-size: 15px; line-height: 1.8; }
+  .legal h2 { font-size: 17px; font-weight: 700; margin: 28px 0 8px; padding-left: 10px; border-left: 3px solid var(--primary); }
+  .legal p { margin: 0 0 10px; }
+  .legal ul, .legal ol { margin: 0 0 12px; padding-left: 1.4em; }
+  .legal li { margin: 3px 0; }
+  .legal table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14.5px; }
+  .legal th, .legal td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .legal th { width: 11em; color: var(--text-sub); font-weight: 700; background: var(--bg-2); white-space: nowrap; }
+  @media (max-width: 480px) { .legal th, .legal td { display: block; width: auto; } .legal th { border-bottom: 0; padding-bottom: 2px; } .legal td { padding-top: 2px; } }
+  .legal a { color: var(--primary); text-decoration: underline; }
+
   /* 区切り線に目盛りを刻む */
   .ticks {
     height: 6px;
