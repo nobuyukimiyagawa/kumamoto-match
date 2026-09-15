@@ -1,0 +1,3 @@
+:HL["/kumamoto-match/_next/static/chunks/1c_nrnl3d-qcn.css","style"]
+:HL["/kumamoto-match/_next/static/chunks/0io74njd4-6dw.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"41hGk1SD-8bKFVto6irKE"}

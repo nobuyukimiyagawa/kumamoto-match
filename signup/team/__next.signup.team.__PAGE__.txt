@@ -1,0 +1,25 @@
+1:"$Sreact.fragment"
+2:I[30468,["/kumamoto-match/_next/static/chunks/3fntmmi971322.js","/kumamoto-match/_next/static/chunks/0f3bbu6fdftlw.js","/kumamoto-match/_next/static/chunks/18oqf-ao1pili.js"],"default"]
+3:I[97367,["/kumamoto-match/_next/static/chunks/3fntmmi971322.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+8:I[97367,["/kumamoto-match/_next/static/chunks/3fntmmi971322.js"],"ViewportBoundary"]
+9:I[97367,["/kumamoto-match/_next/static/chunks/3fntmmi971322.js"],"MetadataBoundary"]
+a:I[27201,["/kumamoto-match/_next/static/chunks/3fntmmi971322.js"],"IconMark"]
+c:I[39756,["/kumamoto-match/_next/static/chunks/3fntmmi971322.js"],"default"]
+d:I[37457,["/kumamoto-match/_next/static/chunks/3fntmmi971322.js"],"default"]
+:HL["/kumamoto-match/_next/static/chunks/1c_nrnl3d-qcn.css","style"]
+:HL["/kumamoto-match/_next/static/chunks/0io74njd4-6dw.css","style"]
+7:X
+f:X
+f:C
+0:{"buildId":"41hGk1SD-8bKFVto6irKE","data":[{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"role":"team"}],[["$","script","script-0",{"src":"/kumamoto-match/_next/static/chunks/0f3bbu6fdftlw.js","async":true}],["$","script","script-1",{"src":"/kumamoto-match/_next/static/chunks/18oqf-ao1pili.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":"$@6","staleTime":"$7","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$L8",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","2",{"name":"theme-color","content":"#ffffff"}]]}],["$","div",null,{"hidden":true,"children":["$","$L9",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"ピッチメイト | 熊本のチームと選手をつなぐ"}],["$","meta","1",{"name":"description","content":"熊本県のアマチュアサッカー向けマッチング。チーム同士のトレーニングマッチと、試合の助っ人を、日付と地図から探せます。"}],["$","link","2",{"rel":"icon","href":"/kumamoto-match/favicon.ico?favicon.3s32gzw7o38kr.ico","sizes":"64x64","type":"image/x-icon"}],["$","link","3",{"rel":"icon","href":"/kumamoto-match/icon.svg?icon.2yrear5634kiy.svg","sizes":"any","type":"image/svg+xml"}],["$","link","4",{"rel":"apple-touch-icon","href":"/kumamoto-match/apple-icon.png?apple-icon.0o6tf1ceyz4xd.png","sizes":"180x180","type":"image/png"}],["$","$La","5",{}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"isPartial":"$@b","staleTime":"$7","varyParams":null},{"rsc":["$","$1","c",{"children":[null,["$","$Lc",null,{"parallelRouterKey":"children","template":["$","$Ld",null,{}]}]]}],"isPartial":"$@e","staleTime":"$7","varyParams":"$f"},{"rsc":["$","$1","c",{"children":[null,["$","$Lc",null,{"parallelRouterKey":"children","template":["$","$Ld",null,{}]}]]}],"isPartial":"$@10","staleTime":"$7","varyParams":"$f"},{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/kumamoto-match/_next/static/chunks/1c_nrnl3d-qcn.css","precedence":"next"}],["$","link","1",{"rel":"stylesheet","href":"/kumamoto-match/_next/static/chunks/0io74njd4-6dw.css","precedence":"next"}],["$","script","script-0",{"src":"/kumamoto-match/_next/static/chunks/3fntmmi971322.js","async":true}]],["$","html",null,{"lang":"ja","className":"biz_udpgothic_f1bd805e-module__l4M-UW__variable orbitron_e2ecf519-module__BEQaGa__variable share_tech_mono_f69666db-module__kJBFoG__variable","children":["$","body",null,{"children":["$","$Lc",null,{"parallelRouterKey":"children","template":["$","$Ld",null,{}],"notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]]}]}]}]]}],"isPartial":"$@11","staleTime":"$7","varyParams":null}],"isUpgradeableISRFallback":false,"a":"$@12","rootVaryParams":null,"needsRuntimeRequest":"$@13"}
+5:null
+7:300
+13:true
+7:C
+12:0
+b:"$undefined"
+e:"$undefined"
+10:"$undefined"
+11:"$undefined"
+6:"$undefined"
