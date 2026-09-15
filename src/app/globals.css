@@ -356,6 +356,23 @@ a { color: inherit; }
   }
   .sheet[data-open="true"] { transform: translateY(0); }
   .sheet-inner { max-width: 64rem; margin: 0 auto; }
+  /* 横に並ぶカード。1枚ずつ中央で止まる。両脇に次のカードが少し見える */
+  .sheet-track {
+    position: relative; /* 子の offsetLeft をトラック基準にする（中央合わせの計算用） */
+    display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding: 0 6vw;
+    padding: 4px 6vw 6px; margin: 0 -16px;
+    cursor: grab; user-select: none;
+  }
+  .sheet-track:active { cursor: grabbing; }
+  .sheet-item {
+    flex: 0 0 88vw; max-width: 40rem; scroll-snap-align: center;
+    opacity: .55; transform: scale(.97); transition: opacity .2s, transform .2s;
+  }
+  .sheet-item[data-active="true"] { opacity: 1; transform: none; }
+  @media (min-width: 640px) { .sheet-item { flex-basis: 40rem; } .sheet-track { padding-left: calc(50% - 20rem); padding-right: calc(50% - 20rem); scroll-padding: 0; } }
+  .sheet-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); transition: background .2s, transform .2s; }
+  .sheet-dot[data-on="true"] { background: var(--primary); transform: scale(1.4); box-shadow: 0 0 6px var(--primary); }
   .sheet-handle {
     display: inline-block; width: 36px; height: 4px; border-radius: 2px;
     background: var(--line-2); margin-right: 8px;

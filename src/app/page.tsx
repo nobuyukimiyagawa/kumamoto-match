@@ -108,18 +108,17 @@ export default function SearchPage() {
     setSheetOpen(true);
     cardRefs.current[id]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, []);
-  const activeIndex = posts.findIndex((p) => p.id === activeId);
-  const activePost = activeIndex >= 0 ? posts[activeIndex] : null;
-  const step = useCallback((d: 1 | -1) => {
-    if (posts.length === 0) return;
-    const i = posts.findIndex((p) => p.id === activeId);
-    const next = posts[(i + d + posts.length) % posts.length];
-    setActiveId(next.id);
-    cardRefs.current[next.id]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [posts, activeId]);
+  // シートでスワイプして選択が変わったら、地図とリストも追従させる
+  const activateFromSheet = useCallback((id: string) => {
+    setActiveId(id);
+    cardRefs.current[id]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, []);
   const closeSheet = useCallback(() => setSheetOpen(false), []);
-  const prev = useCallback(() => step(-1), [step]);
-  const next = useCallback(() => step(1), [step]);
+  const cardProps = useCallback((p: typeof posts[number]) => ({
+    distanceKm: origin ? distanceKm(origin, p.venue) : null,
+    rating: ratingSummary(db, { kind: "team", id: p.teamId }),
+    entries: applicationsForPost(db, p.id).filter((a) => a.status !== "rejected").length,
+  }), [db, origin]);
 
   return (
     <main className="flex h-dvh flex-col">
@@ -213,14 +212,12 @@ export default function SearchPage() {
       </div>
       <BottomNav />
       <PostSheet
-        open={sheetOpen && !!activePost}
-        post={activePost}
-        index={Math.max(0, activeIndex)}
-        total={posts.length}
-        onClose={closeSheet} onPrev={prev} onNext={next}
-        distanceKm={activePost && origin ? distanceKm(origin, activePost.venue) : null}
-        rating={activePost ? ratingSummary(db, { kind: "team", id: activePost.teamId }) : { avg: 0, count: 0 }}
-        entries={activePost ? applicationsForPost(db, activePost.id).filter((a) => a.status !== "rejected").length : 0}
+        open={sheetOpen && !!activeId && posts.some((p) => p.id === activeId)}
+        posts={posts}
+        activeId={activeId}
+        onActive={activateFromSheet}
+        onClose={closeSheet}
+        cardProps={cardProps}
       />
     </main>
   );
