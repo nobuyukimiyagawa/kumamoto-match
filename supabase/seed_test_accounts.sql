@@ -2,7 +2,9 @@
 -- Supabase ダッシュボードの SQL Editor で実行する（service role で動くので RLS は無視される）。
 -- 消すときは末尾の「片付け」を実行する。
 --
--- ログイン: メール test1@example.com 〜 test6@example.com / パスワードは全員 pitchmate-test-2026
+-- ログイン: メール test1@example.com 〜 test6@example.com
+-- パスワードはこのファイルに書かない（公開リポジトリのため）。実行前に下の <TEST_PASSWORD> を置き換え、
+-- 実際の値は ~/.config/pitchmate-test-password に置く。投入後に変えるときは末尾の「パスワード変更」を使う。
 --   test1 山田 太郎   … FC 熊本イレブン のオーナー（本格志向・熊本市中央区）
 --   test2 佐藤 健     … 益城ユナイテッド のオーナー（エンジョイ・益城町）
 --   test3 鈴木 大輔   … 合志フットボールクラブ のオーナー（初心者歓迎・合志市）
@@ -30,7 +32,7 @@ insert into auth.users (
 )
 select
   '00000000-0000-0000-0000-000000000000', u.id, 'authenticated', 'authenticated', u.email,
-  extensions.crypt('pitchmate-test-2026', extensions.gen_salt('bf')), now(),
+  extensions.crypt('<TEST_PASSWORD>', extensions.gen_salt('bf')), now(),
   '{"provider":"email","providers":["email"]}'::jsonb, jsonb_build_object('name', u.name),
   now(), now(), '', '', '', '', ''
 from (values
@@ -154,3 +156,9 @@ select email from auth.users where id::text like '11111111-0000-4000-8000-%' ord
 -- posts は teams の cascade で消える。
 -- ============================================================
 -- delete from auth.users where id::text like '11111111-0000-4000-8000-%';
+
+-- ============================================================
+-- パスワード変更（6人まとめて）
+-- ============================================================
+-- update auth.users set encrypted_password = extensions.crypt('<TEST_PASSWORD>', extensions.gen_salt('bf')), updated_at = now()
+--   where id::text like '11111111-0000-4000-8000-%';

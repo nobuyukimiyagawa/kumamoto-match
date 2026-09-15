@@ -140,6 +140,6 @@ Magic link / Invite / Reauthentication / 各種「変更通知」も日本語に
 ## 5. テストアカウント（2026-09-15 投入）
 
 `supabase/seed_test_accounts.sql` を SQL Editor で実行済み。メール `test1@example.com`〜`test6@example.com`、
-パスワードは全員 `pitchmate-test-2026`。test1〜4 はチームのオーナー、test5・6 は個人。
+パスワードは全員共通で、このリポジトリには書かない（`~/.config/pitchmate-test-password`）。test1〜4 はチームのオーナー、test5・6 は個人。
 募集9件・エントリー6件・評価3件も入っている（日付は投入日基準）。
 消すときは同ファイル末尾の `delete from auth.users where id::text like '11111111-0000-4000-8000-%'`。
