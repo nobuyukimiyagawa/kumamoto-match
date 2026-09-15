@@ -1,0 +1,17 @@
+# Netlify 配信（静的書き出し）。ルート配信なので basePath は空。
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NEXT_PUBLIC_BASE_PATH = ""
+  NODE_VERSION = "22"
+  # 静的書き出しなので Next.js 用プラグインは使わない
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+# 静的書き出しのため、末尾スラッシュ無しでも index.html を引けるようにする
+[[redirects]]
+  from = "/*"
+  to = "/:splat"
+  status = 200
+  force = false

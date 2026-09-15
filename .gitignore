@@ -42,3 +42,6 @@ next-env.d.ts
 
 # maplibre worker (scripts/copy-maplibre-worker.mjs が生成)
 /public/maplibre/
+
+# Local Netlify folder
+.netlify

@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "NEXT_PUBLIC_BASE_PATH=/kumamoto-match npm run build && bash scripts/deploy-pages.sh"
+    "deploy": "NEXT_PUBLIC_BASE_PATH=/kumamoto-match npm run build && bash scripts/deploy-pages.sh",
+    "deploy:netlify": "NEXT_PUBLIC_BASE_PATH= npm run build && netlify deploy --prod --dir=out"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

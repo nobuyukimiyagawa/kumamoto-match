@@ -39,8 +39,10 @@ function safeReturn(ret: unknown): string | null {
   let u: URL;
   try { u = new URL(ret); } catch { return null; }
   if (u.username || u.password) return null;
-  if (SITE_URL) {
-    const site = new URL(SITE_URL);
+  // SITE_URL はカンマ区切りで複数可（例: Netlify と GitHub Pages）
+  for (const raw of SITE_URL.split(",").map((x) => x.trim()).filter(Boolean)) {
+    let site: URL;
+    try { site = new URL(raw); } catch { continue; }
     if (u.protocol === site.protocol && u.hostname === site.hostname && u.port === site.port
         && u.pathname.startsWith(site.pathname)) return u.toString();
   }
@@ -60,7 +62,7 @@ Deno.serve(async (req) => {
   if (!me?.user) return json({ error: "unauthorized" }, 401);
 
   const body = await req.json().catch(() => ({})) as { teamId?: string; return?: string };
-  const ret = safeReturn(body.return) ?? (SITE_URL ? SITE_URL + "team/" : "");
+  const ret = safeReturn(body.return) ?? (SITE_URL ? SITE_URL.split(",")[0].trim() + "team/" : "");
   if (!body.teamId || !ret) return json({ error: "bad_request" }, 400);
 
   // 2) チームの運営者か確かめる

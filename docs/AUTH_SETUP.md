@@ -143,3 +143,12 @@ Magic link / Invite / Reauthentication / 各種「変更通知」も日本語に
 パスワードは全員共通で、このリポジトリには書かない（`~/.config/pitchmate-test-password`）。test1〜4 はチームのオーナー、test5・6 は個人。
 募集9件・エントリー6件・評価3件も入っている（日付は投入日基準）。
 消すときは同ファイル末尾の `delete from auth.users where id::text like '11111111-0000-4000-8000-%'`。
+
+## 6. 公開先（2026-09-15）
+
+- **公開 URL: https://pitchmate-kumamoto.netlify.app/**（Netlify、ルート配信。`npm run deploy:netlify`）
+- GitHub Pages（https://nobuyukimiyagawa.github.io/kumamoto-match/）も残している（`npm run deploy`）
+- Supabase の Site URL は Netlify に変更。Redirect URLs には両方と localhost を登録
+- Edge Function の `SITE_URL` はカンマ区切りで両方を入れてある（line-auth / stripe-checkout が戻り先の検査に使う）
+- Netlify は Next.js を自動検出してプラグインを入れようとするので、`netlify.toml` で `NETLIFY_NEXT_PLUGIN_SKIP=true`。
+  配信は `netlify deploy --prod --dir=out --no-build`（ローカルで build した out/ を上げる）

@@ -50,8 +50,10 @@ function safeReturn(ret: string | null) {
   let u: URL;
   try { u = new URL(ret); } catch { return null; }
   if (u.username || u.password) return null;
-  if (SITE_URL) {
-    const site = new URL(SITE_URL);
+  // SITE_URL はカンマ区切りで複数可（例: Netlify と GitHub Pages）
+  for (const raw of SITE_URL.split(",").map((x) => x.trim()).filter(Boolean)) {
+    let site: URL;
+    try { site = new URL(raw); } catch { continue; }
     if (u.protocol === site.protocol && u.hostname === site.hostname && u.port === site.port
         && u.pathname.startsWith(site.pathname)) return u.toString();
   }
@@ -86,7 +88,7 @@ Deno.serve(async (req) => {
     const cookies = Object.fromEntries(
       (req.headers.get("cookie") ?? "").split(";").map((s) => s.trim().split("=")).filter((p) => p.length === 2),
     );
-    const ret = safeReturn(decodeURIComponent(cookies.line_return ?? "")) ?? (SITE_URL ? SITE_URL + "auth/line/" : "");
+    const ret = safeReturn(decodeURIComponent(cookies.line_return ?? "")) ?? (SITE_URL ? SITE_URL.split(",")[0].trim() + "auth/line/" : "");
     if (!ret) return new Response("no return url", { status: 400 });
 
     const code = url.searchParams.get("code");
