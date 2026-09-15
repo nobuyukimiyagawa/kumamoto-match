@@ -67,7 +67,7 @@ export default function Filters({
     <div ref={bar} className="relative">
       <div className="no-bar flex items-stretch gap-1 overflow-x-auto px-3 py-2 md:px-4" role="toolbar" aria-label="絞り込み">
         <Trigger label="日付" value={dateText} open={open === "date"} onClick={() => toggle("date")} accent />
-        <Trigger label="探すもの" value={value.kind === "all" ? "すべて" : value.kind === "training_match" ? "対戦相手" : "助っ人"} open={open === "kind"} onClick={() => toggle("kind")} />
+        <Trigger label="マッチタイプ" value={value.kind === "all" ? "すべて" : value.kind === "training_match" ? "トレマ" : "助っ人"} open={open === "kind"} onClick={() => toggle("kind")} />
         <Trigger label="場所" value={value.city === "all" ? "すべて" : value.city} open={open === "city"} onClick={() => toggle("city")} />
         <Trigger label="現在地から" value={value.radiusKm ? `${value.radiusKm}km以内` : "指定なし"} open={open === "radius"} onClick={() => toggle("radius")} busy={locating} />
         <Trigger label="レベル" value={value.level === "all" ? "問わない" : LEVEL_LABEL[value.level]} open={open === "level"} onClick={() => toggle("level")} />
@@ -95,9 +95,9 @@ export default function Filters({
         </Panel>
       )}
       {open === "kind" && (
-        <Panel title="探すもの" onClose={() => setOpen(null)}>
+        <Panel title="マッチタイプ" onClose={() => setOpen(null)}>
           <Options
-            items={[["all", "すべて"], ["training_match", "対戦相手（" + KIND_LABEL.training_match + "）"], ["helper", "助っ人（" + KIND_LABEL.helper + "）"]] as const}
+            items={[["all", "すべて"], ["training_match", KIND_LABEL.training_match + "（対戦相手を探す）"], ["helper", KIND_LABEL.helper + "（助っ人を探す）"]] as const}
             value={value.kind} onPick={(v) => set({ kind: v })}
           />
         </Panel>
