@@ -5,7 +5,8 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import SearchMap from "@/components/SearchMap";
 import PostCard from "@/components/PostCard";
-import Filters, { type FilterState } from "@/components/Filters";
+import Filters, { defaultFilter, type FilterState } from "@/components/Filters";
+import { fmtDateJa } from "@/components/Calendar";
 import { SITE } from "@/config/site";
 import { distanceKm } from "@/lib/geo";
 import { applicationsForPost, listPosts, ratingSummary, useDB } from "@/lib/store";
@@ -14,7 +15,7 @@ export type LatLng = { lat: number; lng: number };
 
 export default function SearchPage() {
   const db = useDB();
-  const [filter, setFilter] = useState<FilterState>({ kind: "all", level: "all", within: 30, radiusKm: 0 });
+  const [filter, setFilter] = useState<FilterState>(defaultFilter);
   const [activeId, setActiveId] = useState<string | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // 現在地。距離で絞るときと、地図の現在地ボタンを押したときだけ入る
@@ -22,21 +23,43 @@ export default function SearchPage() {
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState<string | null>(null);
 
-  const posts = useMemo(() => {
+  // 日付・場所以外の条件で絞った「これからの募集」。カレンダーの件数と場所の件数はここから数える
+  const base = useMemo(() => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     return listPosts(db).filter((p) => {
       if (p.status === "closed") return false;
       if (filter.kind !== "all" && p.kind !== filter.kind) return false;
       if (filter.level !== "all" && p.level !== filter.level) return false;
-      const diff = (new Date(p.date + "T00:00:00").getTime() - today.getTime()) / 86400000;
-      if (diff < 0) return false;                       // 過ぎた募集は出さない
-      if (filter.within && diff > filter.within) return false;
+      if (new Date(p.date + "T00:00:00").getTime() < today.getTime()) return false; // 過ぎた募集は出さない
       if (filter.radiusKm && origin) {
         if (distanceKm(origin, p.venue) > filter.radiusKm) return false;
       }
       return true;
-    }).sort((a, b) => a.date.localeCompare(b.date));
-  }, [db, filter, origin]);
+    }).sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+  }, [db, filter.kind, filter.level, filter.radiusKm, origin]);
+
+  const byCity = useMemo(() => base.filter((p) => filter.city === "all" || p.venue.city === filter.city), [base, filter.city]);
+
+  // 日付ごとの件数（場所まで絞ったあと）。カレンダーに出す
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    byCity.forEach((p) => { c[p.date] = (c[p.date] ?? 0) + 1; });
+    return c;
+  }, [byCity]);
+  // 場所ごとの件数は日付に関係なく「これからの募集」全体で数える（場所→日付の順に探せるように）
+  const cities = useMemo(() => {
+    const c = new Map<string, number>();
+    base.forEach((p) => c.set(p.venue.city, (c.get(p.venue.city) ?? 0) + 1));
+    return [...c.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja"));
+  }, [base]);
+
+  const posts = useMemo(() => byCity.filter((p) => !filter.date || p.date === filter.date), [byCity, filter.date]);
+
+  // 選んだ日に募集が無いとき、次に募集がある日を案内する
+  const nextDate = useMemo(() => {
+    if (!filter.date || posts.length > 0) return null;
+    return byCity.find((p) => p.date > filter.date!)?.date ?? null;
+  }, [byCity, filter.date, posts.length]);
 
   // 距離の絞り込みを選んだら、その場で現在地を取りに行く
   const locate = useCallback(() => {
@@ -105,34 +128,53 @@ export default function SearchPage() {
         >
           <div className="px-4 py-2.5 md:pb-3 md:pt-3" style={{ background: "var(--surface)", borderBottom: "1px solid var(--line)" }}>
             <p className="hud mb-2 hidden md:block">filter</p>
-            <Filters value={filter} onChange={changeFilter} locating={locating} locError={locError} />
+            <Filters value={filter} onChange={changeFilter} locating={locating} locError={locError} counts={counts} cities={cities} />
           </div>
           <div className="ticks" aria-hidden />
 
           <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-3 md:pb-6">
-            <div className="mb-2 flex items-baseline gap-2">
+            <div className="mb-2 flex flex-wrap items-baseline gap-x-2">
               <span className="hud hud-accent">scan result</span>
               <p className="text-[13.5px] font-bold" style={{ color: "var(--text-sub)" }}>
+                {filter.date && <span style={{ color: "var(--text)" }}>{fmtDateJa(filter.date)} </span>}
                 <span className="num text-[16px]" style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}>{posts.length}</span>件の募集
                 <span className="ml-2 font-normal">
-                  日付の近い順{filter.radiusKm && origin ? `・現在地から${filter.radiusKm}km以内` : ""}
+                  {filter.date ? "時間の早い順" : "日付の近い順"}
+                  {filter.city !== "all" ? `・${filter.city}` : ""}
+                  {filter.radiusKm && origin ? `・現在地から${filter.radiusKm}km以内` : ""}
                 </span>
               </p>
             </div>
 
             {posts.length === 0 ? (
               <div className="card p-6 text-center">
-                <p className="text-[15px] font-bold">条件に合う募集がありません</p>
-                <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
-                  期間や種別を広げてみてください。
+                <p className="text-[15px] font-bold">
+                  {filter.date ? `${fmtDateJa(filter.date)}の募集はありません` : "条件に合う募集がありません"}
                 </p>
-                <button
-                  type="button"
-                  className="btn btn-ghost mt-4"
-                  onClick={() => changeFilter({ kind: "all", level: "all", within: 0, radiusKm: 0 })}
-                >
-                  絞り込みをすべて外す
-                </button>
+                {nextDate ? (
+                  <>
+                    <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
+                      次に募集があるのは <b style={{ color: "var(--text)" }}>{fmtDateJa(nextDate)}</b>（{counts[nextDate]}件）です。
+                    </p>
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                      <button type="button" className="btn btn-primary" onClick={() => changeFilter({ ...filter, date: nextDate })}>
+                        {fmtDateJa(nextDate)}を見る
+                      </button>
+                      <button type="button" className="btn btn-ghost" onClick={() => changeFilter({ ...filter, date: null })}>
+                        すべての日程を見る
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-1 text-[14px]" style={{ color: "var(--text-sub)" }}>
+                      日付や種別、場所を広げてみてください。
+                    </p>
+                    <button type="button" className="btn btn-ghost mt-4" onClick={() => changeFilter({ ...defaultFilter(), date: null })}>
+                      絞り込みをすべて外す
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <div className="flex flex-col gap-3">
